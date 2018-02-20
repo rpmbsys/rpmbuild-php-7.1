@@ -1,0 +1,264 @@
+diff -rup php-7.0.8.orig/ext/pdo/Makefile.frag php-7.0.8/ext/pdo/Makefile.frag
+--- php-7.0.8.orig/ext/pdo/Makefile.frag	2016-06-21 21:57:16.000000000 +0200
++++ php-7.0.8/ext/pdo/Makefile.frag	2016-07-21 14:42:26.611000000 +0200
+@@ -1,4 +1,4 @@
+-phpincludedir=$(prefix)/include/php
++phpincludedir=$(prefix)/include/php7
+ 
+ PDO_HEADER_FILES= \
+ 	php_pdo.h \
+diff -rup php-7.0.8.orig/ext/phar/Makefile.frag php-7.0.8/ext/phar/Makefile.frag
+--- php-7.0.8.orig/ext/phar/Makefile.frag	2016-06-21 21:56:46.000000000 +0200
++++ php-7.0.8/ext/phar/Makefile.frag	2016-07-21 14:55:51.681000000 +0200
+@@ -37,10 +37,10 @@ $(builddir)/phar.phar: $(builddir)/phar.
+ 
+ install-pharcmd: pharcmd
+ 	-@$(mkinstalldirs) $(INSTALL_ROOT)$(bindir)
+-	$(INSTALL) $(builddir)/phar.phar $(INSTALL_ROOT)$(bindir)
+-	-@rm -f $(INSTALL_ROOT)$(bindir)/phar
+-	$(LN_S) -f phar.phar $(INSTALL_ROOT)$(bindir)/phar
++	$(INSTALL) $(builddir)/phar.phar $(INSTALL_ROOT)$(bindir)/phar.phar$(program_suffix)
++	-@rm -f $(INSTALL_ROOT)$(bindir)/phar$(program_suffix)
++	$(LN_S) -f phar.phar$(program_suffix) $(INSTALL_ROOT)$(bindir)/phar$(program_suffix)
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man1
+-	@$(INSTALL_DATA) $(builddir)/phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar.1
+-	@$(INSTALL_DATA) $(builddir)/phar.phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar.phar.1
++	@$(INSTALL_DATA) $(builddir)/phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar$(program_suffix).1
++	@$(INSTALL_DATA) $(builddir)/phar.phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar.phar$(program_suffix).1
+ 
+diff -rup php-7.0.8.orig/sapi/cgi/Makefile.frag php-7.0.8/sapi/cgi/Makefile.frag
+--- php-7.0.8.orig/sapi/cgi/Makefile.frag	2016-06-21 21:56:42.000000000 +0200
++++ php-7.0.8/sapi/cgi/Makefile.frag	2016-07-21 15:16:46.685000000 +0200
+@@ -6,8 +6,8 @@ $(SAPI_CGI_PATH): $(PHP_GLOBAL_OBJS) $(P
+ install-cgi: $(SAPI_CGI_PATH)
+ 	@echo "Installing PHP CGI binary:        $(INSTALL_ROOT)$(bindir)/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(bindir)
+-	@$(INSTALL) -m 0755 $(SAPI_CGI_PATH) $(INSTALL_ROOT)$(bindir)/$(program_prefix)php-cgi$(program_suffix)$(EXEEXT)
++	@$(INSTALL) -m 0755 $(SAPI_CGI_PATH) $(INSTALL_ROOT)$(bindir)/$(program_prefix)php$(program_suffix)-cgi$(EXEEXT)
+ 	@echo "Installing PHP CGI man page:      $(INSTALL_ROOT)$(mandir)/man1/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man1
+-	@$(INSTALL_DATA) sapi/cgi/php-cgi.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)php-cgi$(program_suffix).1
++	@$(INSTALL_DATA) sapi/cgi/php-cgi.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)php$(program_suffix)-cgi.1
+ 
+diff -rup php-7.0.8.orig/sapi/fpm/fpm/fpm_conf.c php-7.0.8/sapi/fpm/fpm/fpm_conf.c
+--- php-7.0.8.orig/sapi/fpm/fpm/fpm_conf.c	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/fpm/fpm_conf.c	2016-07-21 17:44:01.150000000 +0200
+@@ -1178,7 +1178,7 @@ static int fpm_conf_post_process(int for
+ 	}
+ 
+ 	if (!fpm_global_config.error_log) {
+-		fpm_global_config.error_log = strdup("log/php-fpm.log");
++		fpm_global_config.error_log = strdup("log/php7-fpm.log");
+ 	}
+ 
+ #ifdef HAVE_SYSTEMD
+@@ -1189,7 +1189,7 @@ static int fpm_conf_post_process(int for
+ 
+ #ifdef HAVE_SYSLOG_H
+ 	if (!fpm_global_config.syslog_ident) {
+-		fpm_global_config.syslog_ident = strdup("php-fpm");
++		fpm_global_config.syslog_ident = strdup("php7-fpm");
+ 	}
+ 
+ 	if (fpm_global_config.syslog_facility < 0) {
+@@ -1679,9 +1679,9 @@ int fpm_conf_init_main(int test_conf, in
+ 		char *tmp;
+ 
+ 		if (fpm_globals.prefix == NULL) {
+-			spprintf(&tmp, 0, "%s/php-fpm.conf", PHP_SYSCONFDIR);
++			spprintf(&tmp, 0, "%s/php7-fpm.conf", PHP_SYSCONFDIR);
+ 		} else {
+-			spprintf(&tmp, 0, "%s/etc/php-fpm.conf", fpm_globals.prefix);
++			spprintf(&tmp, 0, "%s/etc/php7-fpm.conf", fpm_globals.prefix);
+ 		}
+ 
+ 		if (!tmp) {
+diff -rup php-7.0.8.orig/sapi/fpm/fpm/fpm_env.h php-7.0.8/sapi/fpm/fpm/fpm_env.h
+--- php-7.0.8.orig/sapi/fpm/fpm/fpm_env.h	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/fpm/fpm_env.h	2016-07-21 17:42:16.650000000 +0200
+@@ -7,7 +7,7 @@
+ 
+ #include "fpm_worker_pool.h"
+ 
+-#define SETPROCTITLE_PREFIX "php-fpm: "
++#define SETPROCTITLE_PREFIX "php7-fpm: "
+ 
+ int fpm_env_init_child(struct fpm_worker_pool_s *wp);
+ int fpm_env_init_main();
+diff -rup php-7.0.8.orig/sapi/fpm/fpm/fpm_main.c php-7.0.8/sapi/fpm/fpm/fpm_main.c
+--- php-7.0.8.orig/sapi/fpm/fpm/fpm_main.c	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/fpm/fpm_main.c	2016-07-21 17:41:37.443000000 +0200
+@@ -1521,7 +1521,7 @@ static PHP_MSHUTDOWN_FUNCTION(cgi)
+ static PHP_MINFO_FUNCTION(cgi)
+ {
+ 	php_info_print_table_start();
+-	php_info_print_table_row(2, "php-fpm", "active");
++	php_info_print_table_row(2, "php7-fpm", "active");
+ 	php_info_print_table_end();
+ 
+ 	DISPLAY_INI_ENTRIES();
+diff -rup php-7.0.8.orig/sapi/fpm/Makefile.frag php-7.0.8/sapi/fpm/Makefile.frag
+--- php-7.0.8.orig/sapi/fpm/Makefile.frag	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/Makefile.frag	2016-07-21 17:38:52.697000000 +0200
+@@ -8,21 +8,21 @@ install-fpm: $(SAPI_FPM_PATH)
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(sbindir)
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(localstatedir)/log
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(localstatedir)/run
+-	@$(INSTALL) -m 0755 $(SAPI_FPM_PATH) $(INSTALL_ROOT)$(sbindir)/$(program_prefix)php-fpm$(program_suffix)$(EXEEXT)
++	@$(INSTALL) -m 0755 $(SAPI_FPM_PATH) $(INSTALL_ROOT)$(sbindir)/$(program_prefix)php$(program_suffix)-fpm$(EXEEXT)
+ 
+ 	@if test -f "$(INSTALL_ROOT)$(sysconfdir)/php-fpm.conf"; then \
+ 		echo "Installing PHP FPM defconfig:     skipping"; \
+ 	else \
+ 		echo "Installing PHP FPM defconfig:     $(INSTALL_ROOT)$(sysconfdir)/" && \
+-		$(mkinstalldirs) $(INSTALL_ROOT)$(sysconfdir)/php-fpm.d; \
+-		$(INSTALL_DATA) sapi/fpm/php-fpm.conf $(INSTALL_ROOT)$(sysconfdir)/php-fpm.conf.default; \
+-		$(INSTALL_DATA) sapi/fpm/www.conf $(INSTALL_ROOT)$(sysconfdir)/php-fpm.d/www.conf.default; \
++		$(mkinstalldirs) $(INSTALL_ROOT)$(sysconfdir)/php$(program_suffix)-fpm.d; \
++		$(INSTALL_DATA) sapi/fpm/php-fpm.conf $(INSTALL_ROOT)$(sysconfdir)/php$(program_suffix)-fpm.conf.default; \
++		$(INSTALL_DATA) sapi/fpm/www.conf $(INSTALL_ROOT)$(sysconfdir)/php$(program_suffix)-fpm.d/www.conf.default; \
+ 	fi
+ 	
+ 	@echo "Installing PHP FPM man page:      $(INSTALL_ROOT)$(mandir)/man8/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man8
+-	@$(INSTALL_DATA) sapi/fpm/php-fpm.8 $(INSTALL_ROOT)$(mandir)/man8/php-fpm$(program_suffix).8
++	@$(INSTALL_DATA) sapi/fpm/php-fpm.8 $(INSTALL_ROOT)$(mandir)/man8/php$(program_suffix)-fpm.8
+ 
+-	@echo "Installing PHP FPM status page:   $(INSTALL_ROOT)$(datadir)/fpm/"
+-	@$(mkinstalldirs) $(INSTALL_ROOT)$(datadir)/fpm
+-	@$(INSTALL_DATA) sapi/fpm/status.html $(INSTALL_ROOT)$(datadir)/fpm/status.html
++	@echo "Installing PHP FPM status page:   $(INSTALL_ROOT)$(datadir)/php$(program_suffix)-fpm/"
++	@$(mkinstalldirs) $(INSTALL_ROOT)$(datadir)/php$(program_suffix)-fpm
++	@$(INSTALL_DATA) sapi/fpm/status.html $(INSTALL_ROOT)$(datadir)/php$(program_suffix)-fpm/status.html
+diff -rup php-7.0.8.orig/sapi/fpm/php-fpm.conf.in php-7.0.8/sapi/fpm/php-fpm.conf.in
+--- php-7.0.8.orig/sapi/fpm/php-fpm.conf.in	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/php-fpm.conf.in	2016-07-21 17:45:43.922000000 +0200
+@@ -14,14 +14,14 @@
+ ; Pid file
+ ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
+ ; Default Value: none
+-;pid = run/php-fpm.pid
++;pid = run/php7-fpm.pid
+ 
+ ; Error log file
+ ; If it's set to "syslog", log is sent to syslogd instead of being written
+ ; into a local file.
+ ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
+-; Default Value: log/php-fpm.log
+-;error_log = log/php-fpm.log
++; Default Value: log/php7-fpm.log
++;error_log = log/php7-fpm.log
+ 
+ ; syslog_facility is used to specify what type of program is logging the
+ ; message. This lets syslogd specify that messages from different facilities
+@@ -33,8 +33,8 @@
+ ; syslog_ident is prepended to every message. If you have multiple FPM
+ ; instances running on the same server, you can change the default value
+ ; which must suit common needs.
+-; Default Value: php-fpm
+-;syslog.ident = php-fpm
++; Default Value: php7-fpm
++;syslog.ident = php7-fpm
+ 
+ ; Log level
+ ; Possible Values: alert, error, warning, notice, debug
+@@ -122,4 +122,4 @@
+ ; Relative path can also be used. They will be prefixed by:
+ ;  - the global prefix if it's been set (-p argument)
+ ;  - @prefix@ otherwise
+-include=@php_fpm_sysconfdir@/php-fpm.d/*.conf
++include=@php_fpm_sysconfdir@/php7-fpm.d/*.conf
+diff -rup php-7.0.8.orig/sapi/fpm/php-fpm.service.in php-7.0.8/sapi/fpm/php-fpm.service.in
+--- php-7.0.8.orig/sapi/fpm/php-fpm.service.in	2016-06-21 21:56:41.000000000 +0200
++++ php-7.0.8/sapi/fpm/php-fpm.service.in	2016-07-21 17:47:03.928000000 +0200
+@@ -8,8 +8,8 @@ After=network.target
+ 
+ [Service]
+ Type=@php_fpm_systemd@
+-PIDFile=@EXPANDED_LOCALSTATEDIR@/run/php-fpm.pid
+-ExecStart=@EXPANDED_SBINDIR@/php-fpm --nodaemonize --fpm-config @EXPANDED_SYSCONFDIR@/php-fpm.conf
++PIDFile=@EXPANDED_LOCALSTATEDIR@/run/php7-fpm.pid
++ExecStart=@EXPANDED_SBINDIR@/php7-fpm --nodaemonize --fpm-config @EXPANDED_SYSCONFDIR@/php7-fpm.conf
+ ExecReload=/bin/kill -USR2 $MAINPID
+ PrivateTmp=true
+ 
+diff -rup php-7.0.8.orig/scripts/Makefile.frag php-7.0.8/scripts/Makefile.frag
+--- php-7.0.8.orig/scripts/Makefile.frag	2016-06-21 21:56:19.000000000 +0200
++++ php-7.0.8/scripts/Makefile.frag	2016-07-21 16:07:44.945000000 +0200
+@@ -3,7 +3,7 @@
+ # Build environment install
+ #
+ 
+-phpincludedir = $(includedir)/php
++phpincludedir = $(includedir)/php7
+ phpbuilddir = $(libdir)/build
+ 
+ BUILD_FILES = \
+@@ -21,9 +21,6 @@ BUILD_FILES_EXEC = \
+ 	config.guess \
+ 	config.sub
+ 
+-bin_SCRIPTS = phpize php-config
+-man_PAGES = phpize php-config
+-
+ install-build:
+ 	@echo "Installing build environment:     $(INSTALL_ROOT)$(phpbuilddir)/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(phpbuilddir) $(INSTALL_ROOT)$(bindir) && \
+@@ -34,16 +31,16 @@ install-build:
+ install-programs: $(builddir)/phpize $(builddir)/php-config
+ 	@echo "Installing helper programs:       $(INSTALL_ROOT)$(bindir)/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(bindir)
+-	@for prog in $(bin_SCRIPTS); do \
+-		echo "  program: $(program_prefix)$${prog}$(program_suffix)"; \
+-		$(INSTALL) -m 755 $(builddir)/$${prog} $(INSTALL_ROOT)$(bindir)/$(program_prefix)$${prog}$(program_suffix); \
+-	done
++	@echo "  program: $(program_prefix)phpize$(program_suffix)";
++	$(INSTALL) -m 755 $(builddir)/phpize $(INSTALL_ROOT)$(bindir)/$(program_prefix)phpize$(program_suffix);
++	@echo "  program: $(program_prefix)php$(program_suffix)-config"; \
++	$(INSTALL) -m 755 $(builddir)/php-config $(INSTALL_ROOT)$(bindir)/$(program_prefix)php$(program_suffix)-config;
+ 	@echo "Installing man pages:             $(INSTALL_ROOT)$(mandir)/man1/"
+ 	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man1
+-	@for page in $(man_PAGES); do \
+-		echo "  page: $(program_prefix)$${page}$(program_suffix).1"; \
+-		$(INSTALL_DATA) $(builddir)/man1/$${page}.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)$${page}$(program_suffix).1; \
+-	done
++	@echo "  page: $(program_prefix)phpize$(program_suffix).1";
++	$(INSTALL_DATA) $(builddir)/man1/phpize.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)phpize$(program_suffix).1;
++	@echo "  page: $(program_prefix)php$(program_suffix)-config.1";
++	$(INSTALL_DATA) $(builddir)/man1/php-config.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)php$(program_suffix)-config.1;
+ 
+ $(builddir)/phpize: $(srcdir)/phpize.in $(top_builddir)/config.status
+ 	(CONFIG_FILES=$@ CONFIG_HEADERS= $(top_builddir)/config.status)
+diff -rup php-7.0.8.orig/scripts/php-config.in php-7.0.8/scripts/php-config.in
+--- php-7.0.8.orig/scripts/php-config.in	2016-07-21 18:20:59.235000000 +0200
++++ php-7.0.8/scripts/php-config.in	2016-07-21 16:08:39.863000000 +0200
+@@ -6,7 +6,7 @@ datarootdir="@datarootdir@"
+ exec_prefix="@exec_prefix@"
+ version="@PHP_VERSION@"
+ vernum="@PHP_VERSION_ID@"
+-include_dir="@includedir@/php"
++include_dir="@includedir@/php7"
+ includes="-I$include_dir -I$include_dir/main -I$include_dir/TSRM -I$include_dir/Zend -I$include_dir/ext -I$include_dir/ext/date/lib"
+ ldflags="@PHP_LDFLAGS@"
+ libs="@EXTRA_LIBS@"
+@@ -27,7 +27,7 @@ for sapi in $php_sapis; do
+     php_cli_binary="@bindir@/${program_prefix}php${program_suffix}${exe_extension}"
+     ;;
+   cgi)
+-    php_cgi_binary="@bindir@/${program_prefix}php-cgi${program_suffix}${exe_extension}"
++    php_cgi_binary="@bindir@/${program_prefix}php${program_suffix}-cgi${exe_extension}"
+     ;;
+   esac
+ done
+diff -rup php-7.0.8.orig/scripts/phpize.in php-7.0.8/scripts/phpize.in
+--- php-7.0.8.orig/scripts/phpize.in	2016-07-21 18:20:59.246000000 +0200
++++ php-7.0.8/scripts/phpize.in	2016-07-21 14:42:26.619000000 +0200
+@@ -5,7 +5,7 @@ prefix='@prefix@'
+ datarootdir='@datarootdir@'
+ exec_prefix="`eval echo @exec_prefix@`"
+ phpdir="`eval echo @libdir@`/build"
+-includedir="`eval echo @includedir@`/php"
++includedir="`eval echo @includedir@`/php7"
+ builddir="`pwd`"
+ SED="@SED@"
+ 
