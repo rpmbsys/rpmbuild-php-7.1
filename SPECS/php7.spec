@@ -134,7 +134,7 @@
 %global db_devel  libdb-devel
 %endif
 
-%global rpmrel 2
+%global rpmrel 1
 
 %if %{with_ap24}
 %global aptag .ap24
@@ -146,7 +146,7 @@
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.14
+Version: 7.1.15
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -202,7 +202,7 @@ Patch42: php-7.1.0-systzdata-v14.patch
 # See http://bugs.php.net/53436
 Patch43: php-5.4.0-phpize.patch
 # Use -lldap_r for OpenLDAP
-Patch45: php-5.6.3-ldap_r.patch
+Patch45: php-7.1.15-ldap_r.patch
 # Make php_config.h constant across builds
 Patch46: php-7.1.14-fixheader.patch
 # drop "Configure command" from phpinfo output
@@ -1308,6 +1308,9 @@ fi
 %files ldap -f files.ldap
 
 %changelog
+* Wed Feb 28 2018 Remi Collet <remi@remirepo.net> - 7.1.15-1
+- Update to 7.1.15 - http://www.php.net/releases/7_1_15.php
+
 * Fri Feb 16 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.14-2
 - Added support for libmysqlclient
 
