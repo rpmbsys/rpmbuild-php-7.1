@@ -146,7 +146,7 @@
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.15
+Version: 7.1.17
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -197,7 +197,7 @@ Patch5: php-7.0.0-includedir.patch
 Patch8: php-7.0.2-libdb.patch
 
 # Functional changes
-Patch40: php-7.1.3-dlopen.patch
+Patch40: php-7.1.16-dlopen.patch
 Patch42: php-7.1.0-systzdata-v14.patch
 # See http://bugs.php.net/53436
 Patch43: php-5.4.0-phpize.patch
@@ -1308,6 +1308,9 @@ fi
 %files ldap -f files.ldap
 
 %changelog
+* Wed Apr 25 2018 Remi Collet <remi@remirepo.net> - 7.1.17-1
+- Update to 7.1.17 - http://www.php.net/releases/7_1_17.php
+
 * Wed Feb 28 2018 Remi Collet <remi@remirepo.net> - 7.1.15-1
 - Update to 7.1.15 - http://www.php.net/releases/7_1_15.php
 
