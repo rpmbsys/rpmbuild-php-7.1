@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile.base
       network: buildnet
-    image: rpmbuild:6-php7base
+    image: aursu/php7build:6-base
   centos6php7ap24base:
     networks:
       - buildnet
@@ -15,14 +15,14 @@ services:
       context: .
       dockerfile: Dockerfile.ap24-base
       network: buildnet
-    image: rpmbuild:6-php7ap24base
+    image: aursu/php7build:6-ap24base
   centos6php7:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
       - rpm6:/home/centos/rpmbuild/RPMS
     build:
       context: .
-    image: rpmbuild:6-php7build
+    image: aursu/php7build:el6
   centos6php7rel:
     command: ["-ba", "--with", "relocation"]
     volumes:
@@ -30,7 +30,7 @@ services:
       - rpm6:/home/centos/rpmbuild/RPMS
     build:
       context: .
-    image: rpmbuild:6-php7build
+    image: aursu/php7build:el6
   centos6php7my:
     command: ["-ba", "--with", "libmysql"]
     volumes:
@@ -38,7 +38,7 @@ services:
       - rpm6:/home/centos/rpmbuild/RPMS
     build:
       context: .
-    image: rpmbuild:6-php7build
+    image: aursu/php7build:el6
   centos6php7ap24:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -46,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ap24
-    image: rpmbuild:6-php7ap24
+    image: aursu/php7build:6-ap24
   centos6php7ap24rel:
     command: ["-ba", "--with", "relocation"]
     volumes:
@@ -55,7 +55,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.ap24
-    image: rpmbuild:6-php7ap24
+    image: aursu/php7build:6-ap24
   centos6php7ap24my:
     command: ["-ba", "--with", "libmysql"]
     volumes:
@@ -63,7 +63,7 @@ services:
       - rpm6:/home/centos/rpmbuild/RPMS
     build:
       context: .
-    image: rpmbuild:6-php7ap24
+    image: aursu/php7build:6-ap24
 
 
 volumes:

@@ -1,4 +1,4 @@
-FROM rpmbuild:6-php7ap24base
+FROM aursu/php7build:6-ap24base
 
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
 COPY SPECS ${BUILD_TOPDIR}/SPECS

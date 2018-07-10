@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile.el7-base
       network: buildnet
-    image: rpmbuild:7-php7base
+    image: aursu/php7build:7-base
   centos7php7:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -15,7 +15,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el7
-    image: rpmbuild:7-php7build
+    image: aursu/php7build:el7
   centos7php7rel:
     command: ["-ba", "--with", "relocation"]
     volumes:
@@ -24,7 +24,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el7
-    image: rpmbuild:7-php7build
+    image: aursu/php7build:el7
   centos7php7my:
     command: ["-ba", "--with", "libmysql"]
     volumes:
@@ -33,7 +33,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el7
-    image: rpmbuild:7-php7build
+    image: aursu/php7build:el7
 
 volumes:
   rpms:

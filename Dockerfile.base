@@ -1,4 +1,4 @@
-FROM rpmbuild:6-build
+FROM aursu/rpmbuild:6-build
 
 USER root
 RUN yum -y install \
@@ -7,6 +7,7 @@ RUN yum -y install \
         db4-devel \
         freetype-devel \
         gdbm-devel \
+        httpd-devel \
         libacl-devel \
         libc-client-devel \
         libicu-devel \
@@ -34,6 +35,7 @@ RUN yum -y --enablerepo custom install \
         postgresql-devel \
     && yum clean all && rm -rf /var/cache/yum
 
-RUN yum -y --enablerepo custom install \
-        "httpd-devel < 2.4" \
-    && yum clean all && rm -rf /var/cache/yum
+# Use stock CentOS 6 httpd-2.2.15
+#RUN yum -y --enablerepo custom install \
+#        "httpd-devel < 2.4" \
+#    && yum clean all && rm -rf /var/cache/yum
