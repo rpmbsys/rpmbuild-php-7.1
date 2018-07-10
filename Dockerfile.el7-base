@@ -1,0 +1,37 @@
+FROM rpmbuild:7-build
+
+USER root
+RUN yum -y install \
+        bzip2-devel \
+        cyrus-sasl-devel \
+        freetype-devel \
+        gdbm-devel \
+        libacl-devel \
+        libcurl-devel \
+        libdb-devel \
+        libicu-devel \
+        libjpeg-turbo-devel \
+        libmcrypt-devel \
+        libpng-devel \
+        libtool-ltdl-devel \
+        libwebp-devel \
+        libxml2-devel \
+        libxslt-devel \
+        mysql-devel \
+        nginx-filesystem \
+        openldap-devel \
+        openssl-devel \
+        pcre-devel \
+        postgresql-devel \
+        sendmail \
+        sqlite-devel \
+        systemd-devel \
+        systemtap-sdt-devel \
+        unixODBC-devel \
+        uw-imap-devel \
+        zlib-devel \
+    && yum clean all && rm -rf /var/cache/yum
+
+RUN yum -y --enablerepo custom install \
+        httpd-devel \
+    && yum clean all && rm -rf /var/cache/yum
