@@ -10,17 +10,52 @@
 # Building of CGI SAPI is disabled by default. Use --with cgi to enable it
 # tests are disabled by default. Use --with test to enable them
 
+# by default all features are enabled
+%global with_cli 0%{!?_without_cli:1}
+%global with_xml 0%{!?_without_xml:1}
+%global with_pgsql 0%{!?_without_pgsql:1}
+%global with_opcache 0%{!?_without_opcache:1}
+%global with_odbc 0%{!?_without_odbc:1}
+%global with_ldap 0%{!?_without_ldap:1}
+%global with_bcmath 0%{!?_without_bcmath:1}
+%global with_posix 0%{!?_without_posix:1}
+%global with_devel 0%{!?_without_devel:1}
+%global with_common 0%{!?_without_common:1}
+
+# we do not know for sure if any of shared module enabled
+%global with_modules 0
+
 # https://github.com/rpm-software-management/rpm/blob/master/doc/manual/conditionalbuilds
 # php-cgi SAPI
 %global with_cgi 0%{?_with_cgi:1}
+%global with_fpm 0%{?_with_fpm:1}
 %global with_test 0%{?_with_test:1}
+
+%if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+%global with_ap24 1
+%else
 %global with_ap24 0%{?_with_ap24:1}
+# build could be tagged only on CentOS 6 where httpd-2.2 is default
+%if %{with_ap24}
+%global aptag .ap24
+%endif # if %{with_ap24}
+%endif # if 0%{?fedora} >= 18 || 0%{?rhel} >= 7
+
+# we can not provide devel package without CLI (due to phpize)
+%if %{with_devel}
+%global with_cli 1
+%endif
+
 %global with_relocation 0%{?_with_relocation:1}
 
 # with this flag set on we will build php with libmysqlclient library
 %global with_libmysql 0%{?_with_libmysql:1}
 
-%global with_fpm 0%{?_with_fpm:1}
+%if %{with_libmysql}
+%global mytag .my
+%global with_cli 1
+%global with_cgi 1
+%endif
 
 # _rundir is defined in RHEL/CentOS 7
 %if 0%{?rhel} < 7
@@ -97,7 +132,6 @@
 # Extension version
 %global jsonver     1.5.0
 
-
 # Adds -z now to the linker flags
 %global _hardened_build 1
 
@@ -108,6 +142,7 @@
 %else
 %global mysql_config %{_libdir}/mysql/mysql_config
 %endif
+
 %global mysql_sock %(mysql_config --socket 2>/dev/null || echo /var/lib/mysql/mysql.sock)
 
 %if 0%{?fedora}
@@ -126,27 +161,25 @@
 
 %global with_dtrace 1
 %global with_zip    1
-%global with_libzip 0
 
-%if 0%{?fedora} < 18 && 0%{?rhel} < 7
-%global db_devel  db4-devel
-%else
+%if 0%{?fedora} || 0%{?rhel} >= 7
 %global db_devel  libdb-devel
+%else
+%global db_devel  db4-devel
 %endif
 
-%global rpmrel 1
-
-%if %{with_ap24}
-%global aptag .ap24
+%if 0%{?fedora} >= 20 || 0%{?rhel} > 7
+%global with_libzip 1
+%else
+%global with_libzip 0
 %endif
 
-%if %{with_libmysql}
-%global mytag .my
-%endif
+%global rpmrel 2
+%global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.17
+Version: 7.1.19
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -227,7 +260,6 @@ Patch409: php-7.0.8-relocation.patch
 BuildRequires: autoconf
 BuildRequires: bison
 BuildRequires: bzip2-devel
-BuildRequires: curl-devel >= 7.9
 BuildRequires: %{db_devel}
 BuildRequires: flex
 BuildRequires: freetype-devel
@@ -239,14 +271,14 @@ BuildRequires: httpd-devel >= 2.4
 BuildRequires: httpd-devel >= 2.2
 BuildRequires: httpd-devel < 2.4
 %endif
-BuildRequires: libacl-devel
+BuildRequires: libcurl-devel
 BuildRequires: libc-client-devel
-BuildRequires: libicu-devel >= 4.0
+BuildRequires: libicu-devel
 BuildRequires: libjpeg-devel
 BuildRequires: libmcrypt-devel
 BuildRequires: libpng-devel
 BuildRequires: libstdc++-devel
-BuildRequires: libtool >= 1.4.3
+BuildRequires: libtool
 BuildRequires: libtool-ltdl-devel
 BuildRequires: libwebp-devel
 BuildRequires: libxml2-devel
@@ -254,33 +286,36 @@ BuildRequires: libxml2-devel
 BuildRequires: libzip-devel >= 0.11
 %endif
 BuildRequires: openssl-devel
-BuildRequires: pcre-devel >= 6.6
+BuildRequires: pcre-devel
 BuildRequires: perl
 BuildRequires: smtpdaemon
-BuildRequires: sqlite-devel >= 3.6.0
+BuildRequires: sqlite-devel
 BuildRequires: unixODBC-devel
 BuildRequires: zlib-devel
-# to ensure we are using httpd with filesystem feature (see #1081453)
-#BuildRequires: httpd-filesystem
-%if %{with_fpm}
-# to ensure we are using nginx with filesystem feature (see #1142298)
-BuildRequires: nginx-filesystem
-%endif
 %if %{with_dtrace}
 BuildRequires: systemtap-sdt-devel
 %endif
 %if %{with_libmysql}
 BuildRequires: mysql-devel
 %endif
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 
 Requires: httpd-mmn = %{_httpd_mmn}
 %if %{with_ap24}
+# to ensure we are using httpd with filesystem feature (see #1081453)
 Requires: httpd-filesystem >= 2.4
 %endif
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
-# For backwards-compatibility, require php-cli for the time being:
-Requires: %{php_cli}%{?_isa} = %{version}-%{release}
-Requires(pre): httpd >= 2.2.26
+Requires: libcurl
+
+Requires(pre): httpd
+
+# Don't provides extensions, which are not shared library, as .so
+# RPM 4.8
+%{?filter_provides_in: %filter_provides_in %{php_libdir}/modules/.*\.so$}
+%{?filter_setup}
+# RPM 4.9
+%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{php_libdir}/modules/.*\\.so$
+
 # php engine for Apache httpd webserver
 Provides: php(httpd)
 Provides: mod_php = %{version}-%{release}
@@ -361,21 +396,21 @@ Provides: php-mbstring, php-mbstring%{?_isa}
 # You need to compile PHP with the --with-mcrypt[=DIR] parameter to enable this extension
 # mcrypt extension has been deprecated as of PHP 7.1.0 and moved to PECL as of PHP 7.2.0
 Provides: php-mcrypt, php-mcrypt%{?_isa}
-Provides: php-mysqli%{?_isa} = %{version}-%{release}
-Provides: php-mysqli = %{version}-%{release}
+Provides: php-mysqli%{?_isa} = %{version}-%{baserel}
+Provides: php-mysqli = %{version}-%{baserel}
 # mysql extension was DEPRECATED in PHP 5.5.0, and it was removed in PHP 7.0.0 (comented out therefore)
 # As of 5.4.0 The MySQL Native Driver is now the default for all MySQL extensions
 %if ! %{with_libmysql}
-Provides: php-mysqlnd = %{version}-%{release}
-Provides: php-mysqlnd%{?_isa} = %{version}-%{release}
+Provides: php-mysqlnd = %{version}-%{baserel}
+Provides: php-mysqlnd%{?_isa} = %{version}-%{baserel}
 %endif
 Provides: bundled(oniguruma) = 5.9.6
 # To use PHP's OpenSSL support you must also compile PHP --with-openssl
 Provides: php-openssl, php-openssl%{?_isa}
 # core PHP extension, so it is always enabled
 Provides: php-pcre, php-pcre%{?_isa}
-Provides: php-pdo = %{version}-%{release}
-Provides: php-pdo%{?_isa} = %{version}-%{release}
+Provides: php-pdo = %{version}-%{baserel}
+Provides: php-pdo%{?_isa} = %{version}-%{baserel}
 Provides: php-pdo-abi  = %{pdover}
 Provides: php(pdo-abi) = %{pdover}
 Provides: php-pdo-abi  = %{pdover}%{isasuffix}
@@ -394,8 +429,8 @@ Provides: php-reflection, php-reflection%{?_isa}
 # Session support is enabled in PHP by default
 Provides: php-session, php-session%{?_isa}
 # enable SOAP support, configure PHP with --enable-soap
-Provides: php-soap = %{version}-%{release}
-Provides: php-soap%{?_isa} = %{version}-%{release}
+Provides: php-soap = %{version}-%{baserel}
+Provides: php-soap%{?_isa} = %{version}-%{baserel}
 # As of PHP 5.3.0 this extension can no longer be disabled and is therefore always available
 Provides: php-spl, php-spl%{?_isa}
 # The SQLite3 extension is enabled by default as of PHP 5.3.0
@@ -411,27 +446,34 @@ Provides: php-zip, php-zip%{?_isa}
 %endif
 # Zlib support in PHP is not enabled by default. You will need to configure PHP --with-zlib
 Provides: php-zlib, php-zlib%{?_isa}
+%if %{with_ap24} || %{with_libmysql}
+Provides: %{php_common}%{?_isa} = %{version}-%{baserel}
+%endif
 
 %description common
 The %{php_common} package contains files used by both the php
 package and the %{php_cli} package.
 
+%if %{with_cli}
 %package cli
 Group: Development/Languages
 Summary: Command-line interface for PHP
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
-# No interactive mode for CLI/CGI (disabled libedit, readline)
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
+%if %{with_ap24}
+Provides: %{php_cli}%{?_isa} = %{version}-%{baserel}
+%endif
 
 %description cli
 The php-cli package contains the command-line interface
 executing PHP scripts, /usr/bin/php.
+%endif
 
 %if %{with_cgi}
 %package cgi
 Group: Development/Languages
 Summary: CGI interface for PHP
 # for monolithic config use we need ensure that all extensions are installed
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 
 %description cgi
 The php-cgi package contains the CGI interface executing
@@ -440,7 +482,7 @@ PHP scripts, /usr/bin/php-cgi
 %package ioncube
 Summary: ionCube extension for PHP
 Group: Development/Languages
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 
 %description ioncube
 ionCube Loader extensions for PHP. The ionCube
@@ -452,8 +494,8 @@ transparently detects and loads encoded files.
 %package fpm
 Group: Development/Languages
 Summary: PHP FastCGI Process Manager
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
-Requires(pre): /usr/sbin/useradd
+BuildRequires: libacl-devel
+BuildRequires: nginx-filesystem
 %if 0%{?rhel} >= 7
 BuildRequires: systemd-units
 BuildRequires: systemd-devel
@@ -462,6 +504,8 @@ Requires(post): systemd-units
 Requires(preun): systemd-units
 Requires(postun): systemd-units
 %endif
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
+Requires(pre): /usr/sbin/useradd
 # for /etc/nginx ownership
 Requires(pre): nginx-filesystem
 Requires: nginx-filesystem
@@ -472,10 +516,11 @@ implementation with some additional features useful for sites of
 any size, especially busier sites.
 %endif
 
+%if %{with_devel}
 %package devel
 Group: Development/Libraries
 Summary: Files needed for building PHP extensions
-Requires: %{php_cli}%{?_isa} = %{version}-%{release}
+Requires: %{php_cli}%{?_isa} = %{version}-%{baserel}
 Requires: autoconf, automake
 Requires: pcre-devel%{?_isa}
 
@@ -483,16 +528,19 @@ Requires: pcre-devel%{?_isa}
 The php-devel package contains the files needed for building PHP
 extensions. If you need to compile your own PHP extensions, you will
 need to install this package.
+%endif
 
+%if %{with_opcache}
 %package opcache
 Summary:   The Zend OPcache
 Group:     Development/Languages
 License:   PHP
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 Provides:  php-pecl-zendopcache = %{version}
 Provides:  php-pecl-zendopcache%{?_isa} = %{version}
 Provides:  php-pecl(opcache) = %{version}
 Provides:  php-pecl(opcache)%{?_isa} = %{version}
+%global with_modules 1
 
 %description opcache
 The Zend OPcache provides faster PHP execution through opcode caching and
@@ -500,14 +548,16 @@ optimization. It improves PHP performance by storing precompiled script
 bytecode in the shared memory. This eliminates the stages of reading code from
 the disk and compiling it on future access. In addition, it applies a few
 bytecode optimization patterns that make code execution faster.
+%endif
 
+%if %{with_xml}
 %package xml
 Summary: A module for PHP applications which use XML
 Group: Development/Languages
 # All files licensed under PHP version 3.01, except
 # libXMLRPC is licensed under BSD
 License: PHP and BSD
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 # This extension is enabled by default
 Provides: php-dom, php-dom%{?_isa}
 Provides: php-domxml, php-domxml%{?_isa}
@@ -521,22 +571,27 @@ Provides: php-xmlreader, php-xmlreader%{?_isa}
 Provides: php-xmlwriter, php-xmlwriter%{?_isa}
 # PHP 5 includes the XSL extension by default and can be enabled by adding the argument --with-xsl
 Provides: php-xsl, php-xsl%{?_isa}
-BuildRequires: libxslt-devel, libxml2-devel
+BuildRequires: libxml2-devel
+BuildRequires: libxslt-devel
 Requires: libxslt
+%global with_modules 1
 
 %description xml
 The php-xml package contains dynamic shared objects which add support
 to PHP for manipulating XML documents using the DOM tree,
 and performing XSL transformations on XML documents.
+%endif
 
+%if %{with_pgsql}
 %package pgsql
 Summary: A PostgreSQL database module for PHP
 Group: Development/Languages
 # All files licensed under PHP version 3.01
 License: PHP
 BuildRequires: postgresql-devel
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 Requires: postgresql-libs
+%global with_modules 1
 
 %description pgsql
 The php-pgsql package add PostgreSQL database support to PHP.
@@ -545,15 +600,18 @@ system that supports almost all SQL constructs. PHP is an
 HTML-embedded scripting language. If you need back-end support for
 PostgreSQL, you should install this package in addition to the main
 php package.
+%endif
 
+%if %{with_odbc}
 %package odbc
 Summary: A module for PHP applications that use ODBC databases
 Group: Development/Languages
 # All files licensed under PHP version 3.01, except
 # pdo_odbc is licensed under PHP version 3.0
 License: PHP
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 BuildRequires: unixODBC-devel
+%global with_modules 1
 
 %description odbc
 The php-odbc package contains a dynamic shared object that will add
@@ -563,7 +621,9 @@ data sources (which are often, but not always, databases). PHP is an
 HTML-embeddable scripting language. If you need ODBC support for PHP
 applications, you will need to install this package and the php
 package.
+%endif
 
+%if %{with_bcmath}
 %package bcmath
 Summary: A module for PHP applications for using the bcmath library
 Group: Development/Languages
@@ -571,42 +631,51 @@ Group: Development/Languages
 # libbcmath is licensed under LGPLv2+
 License: PHP and LGPLv2+
 # only available if PHP was configured with --enable-bcmath
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
+%global with_modules 1
 
 %description bcmath
 The php-bcmath package contains a dynamic shared object that will add
 support for using the bcmath library to PHP.
+%endif
 
+%if %{with_ldap}
 %package ldap
 Summary: A module for PHP applications that use LDAP
 Group: Development/Languages
 # All files licensed under PHP version 3.01
 License: PHP
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
-BuildRequires: cyrus-sasl-devel, openldap-devel
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
+BuildRequires: cyrus-sasl-devel
+BuildRequires: openldap-devel
+%global with_modules 1
 
 %description ldap
 The php-ldap adds Lightweight Directory Access Protocol (LDAP)
 support to PHP. LDAP is a set of protocols for accessing directory
 services over the Internet. PHP is an HTML-embedded scripting
 language.
+%endif
 
+%if %{with_posix}
 %package process
 Summary: Modules for PHP script using system process interfaces
 Group: Development/Languages
 # All files licensed under PHP version 3.01
 License: PHP
-Requires: %{php_common}%{?_isa} = %{version}-%{release}
+Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 Provides: php-posix, php-posix%{?_isa}
 Provides: php-shmop, php-shmop%{?_isa}
 Provides: php-sysvsem, php-sysvsem%{?_isa}
 Provides: php-sysvshm, php-sysvshm%{?_isa}
 Provides: php-sysvmsg, php-sysvmsg%{?_isa}
+%global with_modules 1
 
 %description process
 The php-process package contains dynamic shared objects which add
 support to PHP using system interfaces for inter-process
 communication.
+%endif
 
 %prep
 %setup -q -n php-%{version}
@@ -617,15 +686,18 @@ communication.
 %endif
 
 %patch1 -p1
+
 %if %{with_relocation}
 %patch405 -p1
 %else
 %patch5 -p1
-%endif
+%endif # if %{with_relocation}
+
 %patch8 -p1
+
 %if %{with_relocation}
 %patch409 -p1
-%endif
+%endif # if %{with_relocation}
 
 %patch42 -p1
 %patch43 -p1
@@ -733,6 +805,7 @@ chmod 644 README.*
 echo "d %{fpm_rundir} 755 root root" >php-fpm.tmpfiles
 %endif
 
+%if %{with_opcache}
 # Some extensions have their own configuration file
 %if %{with_relocation}
 cat %{SOURCE150} > 10-opcache.ini
@@ -744,8 +817,9 @@ cat %{SOURCE50} > 10-opcache.ini
 %if 0%{?rhel} >= 7
 %ifarch x86_64
 sed -e '/opcache.huge_code_pages/s/0/1/' -i 10-opcache.ini
-%endif
-%endif
+%endif # ifarch x86_64
+%endif # if 0%{?rhel} >= 7
+%endif # if %{with_opcache}
 
 %build
 # Set build date from https://reproducible-builds.org/specs/source-date-epoch/
@@ -791,6 +865,7 @@ ln -sf ../configure
 %configure \
     --cache-file=../config.cache \
     --disable-debug \
+    --disable-phpdbg \
     --enable-calendar \
     --enable-dba --with-db4=%{_prefix} --with-gdbm \
     --enable-exif \
@@ -820,6 +895,9 @@ ln -sf ../configure
     --with-icu-dir=%{_prefix} \
     --with-imap \
     --with-imap-ssl \
+%if 0%{?fedora} || 0%{?rhel} >= 7
+    --with-kerberos \
+%endif
     --with-jpeg-dir=%{_prefix} \
     --with-layout=GNU \
     --with-libdir=%{_lib} \
@@ -839,28 +917,42 @@ ln -sf ../configure
     --with-png-dir=%{_prefix} \
     --with-system-ciphers \
     --with-system-tzdata \
+    --with-xmlrpc \
     --with-zlib \
 %if %{with_dtrace}
     --enable-dtrace \
 %endif
-    --disable-phpdbg \
-    --disable-posix \
-    --enable-dom=shared \
+%if %{with_opcache}
     --enable-opcache \
+%else
+    --disable-opcache \
+%endif
+%if %{with_xml}
+    --enable-dom=shared \
     --enable-simplexml=shared \
     --enable-wddx=shared \
     --enable-xmlreader=shared \
     --enable-xmlwriter=shared \
+    --with-xsl=shared,%{_prefix} \
+%endif
+%if %{with_pgsql}
     --with-pdo-pgsql=shared,%{_prefix} \
     --with-pgsql=shared \
-    --with-xmlrpc \
-    --with-xsl=shared,%{_prefix} \
+%endif
+%if %{with_odbc}
     --with-unixODBC=shared,%{_prefix} \
+%endif
+%if %{with_bcmath}
     --enable-bcmath=shared \
+%endif
+%if %{with_ldap}
     --with-ldap=shared --with-ldap-sasl \
+%endif
+%if %{with_posix}
     --enable-sysvmsg=shared --enable-sysvshm=shared --enable-sysvsem=shared \
     --enable-shmop=shared \
     --enable-posix=shared \
+%endif
     $*
 if test $? != 0; then
   tail -500 config.log
@@ -900,6 +992,9 @@ build --with-apxs2=%{_httpd_apxs} --disable-cgi \
 %endif
 %if %{with_cgi}
     ${without_shared} \
+%endif
+%if ! %{with_cli}
+    --disable-cli \
 %endif
     --with-config-file-scan-dir=%{php_sysconfdir}/php.d
 popd
@@ -949,31 +1044,50 @@ unset NO_INTERACTION REPORT_EXIT_STATUS MALLOC_CHECK_
 %install
 # Install everything from the CGI SAPI build
 %if %{with_cgi}
-make -C build-cgi install \
-     INSTALL_ROOT=$RPM_BUILD_ROOT
-%else
-make -C build-apache  install-modules \
-     INSTALL_ROOT=$RPM_BUILD_ROOT
+make -C build-cgi install-cgi  \
+%if %{with_modules}
+    install-modules \
 %endif
+    INSTALL_ROOT=$RPM_BUILD_ROOT
+%else
+%if %{with_modules}
+make -C build-apache install-modules INSTALL_ROOT=$RPM_BUILD_ROOT
+%endif # if %{with_modules}
+%endif # if %{with_cgi}
 
 # all except install-sapi - use apxs for rpmbuild is failed (httpd.conf is missed)
-make -C build-apache  install-binaries install-build install-headers install-programs install-pharcmd install-pdo-headers \
-     INSTALL_ROOT=$RPM_BUILD_ROOT
+make -C build-apache  install-binaries \
+%if %{with_devel}
+    install-build install-headers install-pdo-headers \
+%endif
+%if %{with_cli}
+    install-pharcmd \
+%endif
+%if %{with_devel} || %{with_cli}
+    install-programs \
+%endif
+    INSTALL_ROOT=$RPM_BUILD_ROOT
 
 # Install the php-fpm binary
 %if %{with_fpm}
 make -C build-fpm install-fpm \
-     INSTALL_ROOT=$RPM_BUILD_ROOT
+    INSTALL_ROOT=$RPM_BUILD_ROOT
 %endif
 
 # Install the default configuration file and icons
+%if %{with_common}
 install -m 755 -d $RPM_BUILD_ROOT%{php_sysconfdir}/
 install -m 644 %{SOURCE2} $RPM_BUILD_ROOT%{php_sysconfdir}/php.ini
+%endif # if %{with_common}
+
 install -m 755 -d $RPM_BUILD_ROOT%{_httpd_contentdir}/icons
 install -m 644 *.gif $RPM_BUILD_ROOT%{_httpd_contentdir}/icons/php.gif
 
+%if %{with_common}
 # For third-party packaging:
-install -m 755 -d $RPM_BUILD_ROOT%{php_datadir}
+install -m 755 -d $RPM_BUILD_ROOT%{php_libdir}/pear \
+                  $RPM_BUILD_ROOT%{php_datadir}
+%endif
 
 # install the DSO
 install -m 755 -d $RPM_BUILD_ROOT%{_httpd_moddir}
@@ -996,6 +1110,7 @@ install -D -m 644 %{SOURCE9} $RPM_BUILD_ROOT%{_httpd_modconfdir}/15-php.conf
 cat %{SOURCE9} httpd-php.conf > $RPM_BUILD_ROOT%{_httpd_confdir}/02-php.conf
 %endif
 
+%if %{with_common}
 install -m 755 -d $RPM_BUILD_ROOT%{php_sysconfdir}/php.d
 install -m 755 -d $RPM_BUILD_ROOT%{php_sharedstatedir}
 install -m 755 -d $RPM_BUILD_ROOT%{php_sharedstatedir}/peclxml
@@ -1004,18 +1119,19 @@ install -m 700 -d $RPM_BUILD_ROOT%{php_sharedstatedir}/wsdlcache
 install -m 700 -d $RPM_BUILD_ROOT%{php_sharedstatedir}/opcache
 install -m 755 -d $RPM_BUILD_ROOT%{php_docdir}/pecl
 install -m 755 -d $RPM_BUILD_ROOT%{tests_datadir}/pecl
+install -m 755 -d $RPM_BUILD_ROOT%{php_sysconfdir}/php-cgi-fcgi.d
+%endif
 
 %if %{with_cgi}
 # install ioncube
-install -m 755 ioncube/ioncube_loader_lin_7.1.so $RPM_BUILD_ROOT%{php_libdir}/modules/ioncube_loader_lin_7.1.so
+install -D -m 755 ioncube/ioncube_loader_lin_7.1.so $RPM_BUILD_ROOT%{php_libdir}/modules/ioncube_loader_lin_7.1.so
 
 # install config
 sed "s,@LIBDIR@,%{_libdir},g" \
     < %{SOURCE15} > php-cgi-fcgi.ini
-install -m 644 php-cgi-fcgi.ini \
+install -D -m 644 php-cgi-fcgi.ini \
            $RPM_BUILD_ROOT%{php_sysconfdir}/php-cgi-fcgi.ini
 %endif
-install -m 755 -d $RPM_BUILD_ROOT%{php_sysconfdir}/php-cgi-fcgi.d
 
 # PHP-FPM stuff
 # Log
@@ -1043,9 +1159,11 @@ install -m 644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{fpm_logrot
 # Nginx configuration
 install -D -m 644 %{SOURCE13} $RPM_BUILD_ROOT%{_sysconfdir}/nginx/conf.d/%{fpm_name}.conf
 install -D -m 644 %{SOURCE14} $RPM_BUILD_ROOT%{_sysconfdir}/nginx/default.d/%{main_name}.conf
-%endif  # with_relocation
+%endif  # if %{with_relocation}
+
 mv $RPM_BUILD_ROOT%{fpm_config}.default .
 mv $RPM_BUILD_ROOT%{fpm_config_d}/www.conf.default .
+
 %if 0%{?rhel} >= 7
 # tmpfiles.d
 install -m 755 -d $RPM_BUILD_ROOT%{_prefix}/lib/tmpfiles.d
@@ -1057,7 +1175,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{_unitdir}
 install -m 644 %{SOURCE106} $RPM_BUILD_ROOT%{_unitdir}/%{fpm_unit}
 %else
 install -m 644 %{SOURCE6} $RPM_BUILD_ROOT%{_unitdir}/%{fpm_unit}
-%endif  # with_relocation
+%endif  # if %{with_relocation}
 %else
 # Service
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
@@ -1069,14 +1187,30 @@ install -m 755 %{SOURCE10} $RPM_BUILD_ROOT%{_sysconfdir}/init.d/%{fpm_service}
 %endif  # rhel >= 7
 %endif  # with_fpm
 
+%if %{with_modules}
 # Generate files lists and stub .ini files for each subpackage
 for mod in \
-    dom xsl bcmath xmlreader xmlwriter \
-    simplexml \
+%if %{with_bcmath}
+    bcmath \
+%endif
+%if %{with_xml}
+    dom simplexml wddx xmlreader xmlwriter xsl \
+%endif
+%if %{with_opcache}
     opcache \
-    wddx \
+%endif
+%if %{with_pgsql}
+    pgsql pdo_pgsql \
+%endif
+%if %{with_odbc}
+    odbc \
+%endif
+%if %{with_ldap}
+    ldap \
+%endif
+%if %{with_posix}
     posix shmop sysvshm sysvsem sysvmsg \
-    pgsql pdo_pgsql odbc ldap \
+%endif
     ; do
     case $mod in
       opcache)
@@ -1091,41 +1225,53 @@ for mod in \
     esac
     # some extensions have their own config file
     if [ -f ${ini} ]; then
-      cp -p ${ini} $RPM_BUILD_ROOT%{php_sysconfdir}/php.d/${ini}
+      install -D -m 644 ${ini} $RPM_BUILD_ROOT%{php_sysconfdir}/php.d/${ini}
     else
+      install -d -m 755 $RPM_BUILD_ROOT%{php_sysconfdir}/php.d
       cat > $RPM_BUILD_ROOT%{php_sysconfdir}/php.d/${ini} <<EOF
 ; Enable ${mod} extension module
 extension=${mod}.so
 EOF
     fi
 %if %{with_cgi}
-      cp -p $RPM_BUILD_ROOT%{php_sysconfdir}/{php.d,php-cgi-fcgi.d}/${ini}
-      cat > files.${mod} <<EOF
+    install -d -m 755 $RPM_BUILD_ROOT%{php_sysconfdir}/php-cgi-fcgi.d
+    cp -p $RPM_BUILD_ROOT%{php_sysconfdir}/{php.d,php-cgi-fcgi.d}/${ini}
+    cat > files.${mod} <<EOF
 %{php_libdir}/modules/${mod}.so
 %config(noreplace) %{php_sysconfdir}/php.d/${ini}
 %config(noreplace) %{php_sysconfdir}/php-cgi-fcgi.d/${ini}
 EOF
 %else
-      cat > files.${mod} <<EOF
+    cat > files.${mod} <<EOF
 %{php_libdir}/modules/${mod}.so
 %config(noreplace) %{php_sysconfdir}/php.d/${ini}
 EOF
-%endif
+%endif # if %{with_cgi}
 done
+%endif # if %{with_modules}
 
+%if %{with_xml}
 # The dom, xsl and xml* modules are all packaged in php-xml
 cat files.dom files.xsl files.xml{reader,writer} files.wddx \
     files.simplexml >> files.xml
+%endif
 
+%if %{with_posix}
 # sysv* and posix in packaged in php-process
 cat files.shmop files.sysv* files.posix > files.process
+%endif
 
+%if %{with_pgsql}
 # postgres support as separate php-pgsql package
 cat files.pdo_pgsql >> files.pgsql
+%endif
 
+%if %{with_opcache}
 # The default Zend OPcache blacklist file
 install -m 644 %{SOURCE51} $RPM_BUILD_ROOT%{php_sysconfdir}/php.d/opcache-default.blacklist
+%endif
 
+%if %{with_devel}
 %if %{with_relocation}
 cat %{SOURCE103} > macros.php
 %else
@@ -1145,7 +1291,8 @@ install -m 644 -D macros.php \
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/rpm
 install -m 644 -c macros.php \
            $RPM_BUILD_ROOT%{_sysconfdir}/rpm/macros.%{php_main}
-%endif
+%endif # if 0%{?rhel} >= 7
+%endif # if %{with_devel}
 
 # Remove unpackaged files
 rm -rf $RPM_BUILD_ROOT%{php_libdir}/modules/*.a \
@@ -1194,11 +1341,7 @@ if [ $1 -ge 1 ]; then
     /usr/sbin/service %{fpm_service} condrestart >/dev/null 2>&1 || :
 fi
 %endif
-%endif
-
-#%post cli
-#update-alternatives --install /usr/bin/php php /usr/bin/%{bin_cli} 100 \
-#    --slave /usr/share/man/man1/php.1.gz php.1.gz /usr/share/man/man1/%{bin_cli}.1.gz
+%endif # if %{with_fpm}
 
 %files
 %{_httpd_moddir}/libphp7.so
@@ -1208,6 +1351,7 @@ fi
 %endif
 %{_httpd_contentdir}/icons/*.gif
 
+%if %{with_common}
 %files common
 %doc CODING_STANDARDS CREDITS EXTENSIONS NEWS README*
 %doc LICENSE TSRM_LICENSE libmagic_LICENSE phar_LICENSE timelib_LICENSE
@@ -1226,7 +1370,9 @@ fi
 %attr(0770,root,apache) %dir %{php_sharedstatedir}/session
 %attr(0770,root,apache) %dir %{php_sharedstatedir}/wsdlcache
 %attr(0770,root,apache) %dir %{php_sharedstatedir}/opcache
+%endif
 
+%if %{with_cli}
 %files cli
 %{_bindir}/%{bin_cli}
 %{_bindir}/phar.%{bin_phar}
@@ -1238,6 +1384,12 @@ fi
 %{_mandir}/man1/phar.%{bin_phar}.1*
 %{_mandir}/man1/%{bin_phpize}.1*
 %doc sapi/cli/README
+# move php-config here in case if devel package disabled
+%if ! %{with_devel}
+%exclude %{_bindir}/%{bin_php_config}
+%exclude %{_mandir}/man1/%{bin_php_config}.1*
+%endif # if ! %{with_devel}
+%endif # if %{with_cli}
 
 %if %{with_cgi}
 %files cgi
@@ -1279,6 +1431,7 @@ fi
 %{fpm_datadir}/status.html
 %endif
 
+%if %{with_devel}
 %files devel
 %{_bindir}/%{bin_php_config}
 %{php_includedir}
@@ -1289,25 +1442,52 @@ fi
 %else
 %{_sysconfdir}/rpm/macros.%{php_main}
 %endif
+%endif # if %{with_devel}
 
-
+%if %{with_xml}
 %files xml -f files.xml
 %doc libmbfl_LICENSE
 %doc oniguruma_COPYING
 %doc ucgendat_LICENSE
+%endif
 
+%if %{with_bcmath}
 %files bcmath -f files.bcmath
 %doc libbcmath_COPYING
+%endif
 
+%if %{with_opcache}
 %files opcache -f files.opcache
 %config(noreplace) %{php_sysconfdir}/php.d/opcache-default.blacklist
+%endif
 
+%if %{with_posix}
 %files process -f files.process
+%endif
+
+%if %{with_pgsql}
 %files pgsql -f files.pgsql
+%endif
+
+%if %{with_odbc}
 %files odbc -f files.odbc
+%endif
+
+%if %{with_ldap}
 %files ldap -f files.ldap
+%endif
 
 %changelog
+* Thu Jul 05 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.19-2
+- Fixed bug with unresolved php-common dependency for libmysql
+  build
+
+* Thu Jun 21 2018 Remi Collet <remi@remirepo.net> - 7.1.19-1
+- Update to 7.1.19 - http://www.php.net/releases/7_1_19.php
+
+* Thu May 24 2018 Remi Collet <remi@remirepo.net> - 7.1.18-1
+- Update to 7.1.18 - http://www.php.net/releases/7_1_18.php
+
 * Wed Apr 25 2018 Remi Collet <remi@remirepo.net> - 7.1.17-1
 - Update to 7.1.17 - http://www.php.net/releases/7_1_17.php
 
