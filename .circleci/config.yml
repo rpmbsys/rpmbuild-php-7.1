@@ -60,12 +60,12 @@ jobs:
             docker-compose build --no-cache
             docker-compose -f docker-compose.el7.yml build --no-cache
       - run:
-          name: Build PHP 5.6 RPM packages
+          name: Build PHP 7.1 RPM packages
           command: |
             docker-compose -f docker-compose.el7.yml up centos7php7
             docker-compose -f docker-compose.el7.yml up centos7php7rel
       - run:
-          name: Deploy PHP 5.6 Docker images
+          name: Deploy PHP 7.1 Docker images
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push aursu/php7build:6-base
