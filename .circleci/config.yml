@@ -1,0 +1,86 @@
+version: 2
+jobs:
+  build:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - run:
+          name: Upgrade Docker CE
+          command: |
+            sudo apt-get update
+            sudo apt-get install docker-ce=18.03.1~ce-0~ubuntu
+      - run:
+          name: Upgrade Docker Compose
+          command: |
+            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+      - checkout
+      - run:
+          name: Git submodules sync
+          command: |
+            git submodule sync
+            git submodule update --init
+      - run:
+          name: Start docker services for rpmbuild
+          command: |
+            docker images
+            docker-compose -f rpmbuild/docker-compose.yml up -d
+          background: true
+          no_output_timeout: 2h
+      - run:
+          name: Checkout Curl
+          command: |
+            git clone https://github.com/aursu/rpmbuild-curl.git
+            cd rpmbuild-curl
+            git checkout v7.60.0-2
+      - run:
+          name: Build Curl
+          command: docker-compose -f rpmbuild-curl/docker-compose.yml up
+      - run:
+          name: Checkout PostgreSQL 9.6
+          command: |
+            git clone https://github.com/aursu/rpmbuild-postgresql.git
+            cd rpmbuild-postgresql
+            git checkout v9.6.9-2
+      - run:
+          name: Build PostgreSQL 9.6
+          command: docker-compose -f rpmbuild-postgresql/docker-compose.yml up
+      - run:
+          name: Checkout Apache 2.4
+          command: |
+            git clone https://github.com/aursu/rpmbuild-httpd-2.4.git
+            cd rpmbuild-httpd-2.4
+            git checkout v2.4.33-5
+      - run:
+          name: Build Apache 2.4
+          command: docker-compose -f rpmbuild-httpd-2.4/docker-compose.yml up
+      - run:
+          name: Build PHP Docker images
+          command: |
+            docker-compose build --no-cache
+            docker-compose -f docker-compose.el7.yml build --no-cache
+      - run:
+          name: Build PHP 5.6 RPM packages
+          command: |
+            docker-compose -f docker-compose.el7.yml up centos7php7
+            docker-compose -f docker-compose.el7.yml up centos7php7rel
+      - run:
+          name: Deploy PHP 5.6 Docker images
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push aursu/php7build:6-base
+            docker push aursu/php7build:6-ap24base
+            docker push aursu/php7build:el6
+            docker push aursu/php7build:6-ap24
+      - run:
+          name: Copy RPM packages
+          command: |
+            rm -rf ~/el6 ~/el7
+            mkdir -p ~/el6 ~/el7
+            docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/el6/RPMS
+            docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/RPMS
+            rm -rf ~/el6/RPMS/repodata ~/el7/RPMS/repodata
+      - store_artifacts:
+          path: ~/el6/RPMS
+      - store_artifacts:
+          path: ~/el7/RPMS
