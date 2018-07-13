@@ -5,8 +5,43 @@
 #
 # Please preserve changelog entries
 #
-%global peardir %{_datadir}/php7/pear
-%global metadir %{_localstatedir}/lib/php7/pear
+
+%global with_relocation 0%{?_with_relocation:1}
+
+
+%if %{with_relocation}
+%global program_suffix      7
+%global main_name           php7
+%global php_sysconfdir      %{_sysconfdir}/php7
+%global php_datadir         %{_datadir}/php7
+%global php_sharedstatedir  %{_sharedstatedir}/php7
+%global php_docdir          %{_docdir}/php7
+%global pear_cachedir       %{_localstatedir}/cache/php7-pear
+%global pear_sharedstatedir %{php_sharedstatedir}/pear
+%global pear_datadir        %{php_datadir}
+%global tests_datadir       %{php_datadir}/tests
+%else
+%global main_name           php
+%global php_sysconfdir      %{_sysconfdir}
+%global php_datadir         %{_datadir}/php
+%global php_sharedstatedir  %{_sharedstatedir}/php
+%global php_docdir          %{_docdir}
+%global pear_cachedir       %{_localstatedir}/cache/php-pear
+%global pear_sharedstatedir %{_sharedstatedir}/pear
+%global pear_datadir        %{_datadir}
+%global tests_datadir       %{_datadir}/tests
+%endif
+
+%global pear_name           %{main_name}-pear
+%global cli_name            %{main_name}-cli
+%global xml_name            %{main_name}-xml
+%global devel_name          %{main_name}-devel
+%global peardir             %{pear_datadir}/pear
+%global metadir             %{pear_sharedstatedir}
+%global bin_cli             php%{program_suffix}
+%global bin_pecl            pecl%{program_suffix}
+%global bin_pear            pear%{program_suffix}
+%global bin_peardev         peardev%{program_suffix}
 
 %global getoptver 1.4.1
 %global arctarver 1.4.3
@@ -21,12 +56,11 @@
 %global with_tests 0%{?_with_tests:1}
 
 %global macrosdir %(d=%{_rpmconfigdir}/macros.d; [ -d $d ] || d=%{_sysconfdir}/rpm; echo $d)
-%global  program_suffix       7
 
-%{!?pecl_xmldir: %global pecl_xmldir %{_sharedstatedir}/php7/peclxml}
+%{!?pecl_xmldir: %global pecl_xmldir %{php_sharedstatedir}/peclxml}
 
 Summary: PHP Extension and Application Repository framework
-Name: php7-pear
+Name: %{pear_name}
 Version: 1.10.5
 Release: 2%{?dist}
 Epoch: 1
@@ -38,11 +72,19 @@ URL: http://pear.php.net/package/PEAR
 Source0: http://download.pear.php.net/package/PEAR-%{version}%{?pearprever}.tgz
 # wget https://raw.githubusercontent.com/pear/pear-core/stable/install-pear.php
 Source1: install-pear.php
-Source3: php7-cleanup.php
-Source10: php7-pear.sh
-Source11: php7-pecl.sh
-Source12: php7-peardev.sh
-Source13: php7-macros.pear
+
+Source3: cleanup.php
+Source10: pear.sh
+Source11: pecl.sh
+Source12: peardev.sh
+Source13: macros.pear
+
+Source103: php7-cleanup.php
+Source110: php7-pear.sh
+Source111: php7-pecl.sh
+Source112: php7-peardev.sh
+Source113: php7-macros.pear
+
 Source21: http://pear.php.net/get/Archive_Tar-%{arctarver}.tgz
 Source22: http://pear.php.net/get/Console_Getopt-%{getoptver}.tgz
 Source23: http://pear.php.net/get/Structures_Graph-%{structver}.tgz
@@ -52,11 +94,11 @@ Source25: http://pear.php.net/get/PEAR_Manpages-%{manpages}.tgz
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildRequires: php(language) >= 7 
-BuildRequires: php7-cli
-BuildRequires: php7-xml
+BuildRequires: %{cli_name}
+BuildRequires: %{xml_name}
 BuildRequires: gnupg
 # For pecl_xmldir macro
-BuildRequires: php7-devel
+BuildRequires: %{devel_name}
 %if %{with_tests}
 BuildRequires:  %{_bindir}/phpunit
 %endif
@@ -79,14 +121,14 @@ Provides: php-composer(pear/xml_util) = %{xmlutil}
 # Console_Getopt requires 5.4
 # PEAR requires 5.4
 Requires: php(language) >= 7
-Requires: php7-cli
+Requires: %{cli_name}
 # phpci detected extension
 # PEAR (date, spl always builtin):
 Requires: php-ftp >= 7
 Requires: php-pcre >= 7
 Requires: php-posix >= 7
 Requires: php-tokenizer >= 7
-Requires: php7-xml
+Requires: %{xml_name}
 Requires: php-zlib >= 7
 # Console_Getopt: pcre
 # Archive_Tar: pcre, posix, zlib
@@ -134,7 +176,11 @@ cp %{SOURCE1} .
 
 sed -e 's:@BINDIR@:%{_bindir}:' \
     -e 's:@LIBDIR@:%{_localstatedir}/lib:' \
+%if %{with_relocation}
     %{SOURCE13} > macros.pear
+%else
+    %{SOURCE113} > macros.pear
+%endif
 
 %build
 # This is an empty build section.
@@ -143,57 +189,66 @@ sed -e 's:@BINDIR@:%{_bindir}:' \
 %install
 rm -rf %{buildroot}
 
-export PHP_PEAR_SYSCONF_DIR=%{_sysconfdir}/php7
-export PHP_PEAR_SIG_KEYDIR=%{_sysconfdir}/php7/pearkeys
+export PHP_PEAR_SYSCONF_DIR=%{php_sysconfdir}
+export PHP_PEAR_SIG_KEYDIR=%{php_sysconfdir}/pearkeys
 export PHP_PEAR_SIG_BIN=%{_bindir}/gpg
 export PHP_PEAR_INSTALL_DIR=%{peardir}
 
 # 1.4.11 tries to write to the cache directory during installation
 # so it's not possible to set a sane default via the environment.
 # The ${PWD} bit will be stripped via relocate.php later.
-export PHP_PEAR_CACHE_DIR=${PWD}%{_localstatedir}/cache/php7-pear
+export PHP_PEAR_CACHE_DIR=${PWD}%{pear_cachedir}
 export PHP_PEAR_TEMP_DIR=/var/tmp
 
 install -d %{buildroot}%{peardir} \
-           %{buildroot}%{_localstatedir}/cache/php7-pear \
+           %{buildroot}%{pear_cachedir} \
            %{buildroot}%{_localstatedir}/www/html \
-           %{buildroot}%{_localstatedir}/lib/php7/pear/pkgxml \
-           %{buildroot}%{_sysconfdir}/php7/pear
+           %{buildroot}%{pear_sharedstatedir}/pkgxml \
+           %{buildroot}%{php_sysconfdir}/pear
 
 export INSTALL_ROOT=%{buildroot}
 
-%{_bindir}/php7 --version
+%{_bindir}/%{bin_cli} --version
 
-%{_bindir}/php7 -dmemory_limit=64M -dshort_open_tag=0 -dsafe_mode=0 \
+%{_bindir}/%{bin_cli} -dmemory_limit=64M -dshort_open_tag=0 -dsafe_mode=0 \
          -d 'error_reporting=E_ALL&~E_DEPRECATED' -ddetect_unicode=0 \
          install-pear.php --force \
                  --dir      %{peardir} \
-                 --cache    %{_localstatedir}/cache/php7-pear \
-                 --config   %{_sysconfdir}/php7/pear \
+                 --cache    %{pear_cachedir} \
+                 --config   %{php_sysconfdir}/pear \
                  --bin      %{_bindir} \
                  --www      %{_localstatedir}/www/html \
-                 --doc      %{_docdir}/php7/pear \
-                 --test     %{_datadir}/php7/tests/pear \
-                 --data     %{_datadir}/php7/pear-data \
+                 --doc      %{php_docdir}/pear \
+                 --test     %{tests_datadir}/pear \
+                 --data     %{pear_datadir}/pear-data \
                  --metadata %{metadir} \
                  --man      %{_mandir} \
-                 --php      %{_bindir}/php7 \
+                 --php      %{_bindir}/%{bin_cli} \
                  %{SOURCE0} %{SOURCE21} %{SOURCE22} %{SOURCE23} %{SOURCE24} %{SOURCE25}
 
 # Replace /usr/bin/* with simple scripts:
-install -m 755 %{SOURCE10} %{buildroot}%{_bindir}/pear%{program_suffix}
-install -m 755 %{SOURCE11} %{buildroot}%{_bindir}/pecl%{program_suffix}
-install -m 755 %{SOURCE12} %{buildroot}%{_bindir}/peardev%{program_suffix}
-
-# Sanitize the pear.conf
-%{_bindir}/php7 %{SOURCE3} %{buildroot}%{_sysconfdir}/php7/pear.conf %{_datadir}
+%if %{with_relocation}
+install -m 755 %{SOURCE10} %{buildroot}%{_bindir}/%{bin_pear}
+install -m 755 %{SOURCE11} %{buildroot}%{_bindir}/%{bin_pecl}
+install -m 755 %{SOURCE12} %{buildroot}%{_bindir}/%{bin_peardev}
+%{_bindir}/%{bin_cli} %{SOURCE3} %{buildroot}%{php_sysconfdir}/pear.conf %{_datadir}
+%else
+install -m 755 %{SOURCE110} %{buildroot}%{_bindir}/%{bin_pear}
+install -m 755 %{SOURCE111} %{buildroot}%{_bindir}/%{bin_pecl}
+install -m 755 %{SOURCE112} %{buildroot}%{_bindir}/%{bin_peardev}
+%{_bindir}/%{bin_cli} %{SOURCE103} %{buildroot}%{php_sysconfdir}/pear.conf %{_datadir}
+%endif
 
 # Display configuration for debug
-%{_bindir}/php7 -r "print_r(unserialize(substr(file_get_contents('%{buildroot}%{_sysconfdir}/php7/pear.conf'),17)));"
+%{_bindir}/%{bin_cli} -r "print_r(unserialize(substr(file_get_contents('%{buildroot}%{php_sysconfdir}/pear.conf'),17)));"
 
-
+%if %{with_relocation}
 install -m 644 -D macros.pear \
            %{buildroot}%{macrosdir}/macros.pear7
+%else
+install -m 644 -D macros.pear \
+           %{buildroot}%{macrosdir}/macros.pear
+%endif
 
 # apply patches on installed PEAR tree
 pushd %{buildroot}%{peardir}
@@ -204,39 +259,39 @@ popd
 rm -rf %{buildroot}/.depdb* %{buildroot}/.lock %{buildroot}/.channels %{buildroot}/.filemap
 
 # Need for re-registrying XML_Util
-install -m 644 *.xml %{buildroot}%{_localstatedir}/lib/php7/pear/pkgxml
+install -m 644 *.xml %{buildroot}%{pear_sharedstatedir}/pkgxml
 
 %check
 # Check that no bogus paths are left in the configuration, or in
 # the generated registry files.
-grep %{buildroot} %{buildroot}%{_sysconfdir}/php7/pear.conf && exit 1
-grep %{_libdir} %{buildroot}%{_sysconfdir}/php7/pear.conf && exit 1
-grep '"/tmp"' %{buildroot}%{_sysconfdir}/php7/pear.conf && exit 1
-grep /usr/local %{buildroot}%{_sysconfdir}/php7/pear.conf && exit 1
+grep %{buildroot} %{buildroot}%{php_sysconfdir}/pear.conf && exit 1
+grep %{_libdir} %{buildroot}%{php_sysconfdir}/pear.conf && exit 1
+grep '"/tmp"' %{buildroot}%{php_sysconfdir}/pear.conf && exit 1
+grep /usr/local %{buildroot}%{php_sysconfdir}/pear.conf && exit 1
 grep -rl %{buildroot} %{buildroot} && exit 1
 
 
 %if %{with_tests}
-cp /etc/php7/php.ini .
-echo "include_path=.:%{buildroot}%{peardir}:/usr/share/php7" >>php.ini
+cp %{php_sysconfdir}/php.ini .
+echo "include_path=.:%{buildroot}%{peardir}:%{php_sharedstatedir}" >>php.ini
 export PHPRC=$PWD/php.ini
 LOG=$PWD/rpmlog
 ret=0
 
-cd %{buildroot}%{_datadir}/php7/tests/pear/Structures_Graph/tests
+cd %{buildroot}%{tests_datadir}/pear/Structures_Graph/tests
 phpunit \
    AllTests || ret=1
 
-cd %{buildroot}%{_datadir}/php7/tests/pear/XML_Util/tests
-%{_bindir}/php7 \
-   %{buildroot}/usr/share/php7/pear/pearcmd.php \
-   run-tests --ini="-d include_path=.:%{buildroot}%{peardir}:/usr/share/php7" \
+cd %{buildroot}%{tests_datadir}/pear/XML_Util/tests
+%{_bindir}/%{bin_cli} \
+   %{buildroot}%{pear_sharedstatedir}/pearcmd.php \
+   run-tests --ini="-d include_path=.:%{buildroot}%{peardir}:%{php_sharedstatedir}" \
    | tee $LOG
 
-cd %{buildroot}%{_datadir}/php7/tests/pear/Console_Getopt/tests
-%{_bindir}/php7 \
-   %{buildroot}/usr/share/php7/pear/pearcmd.php \
-   run-tests --ini="-d include_path=.:%{buildroot}%{peardir}:/usr/share/php7" \
+cd %{buildroot}%{tests_datadir}/pear/Console_Getopt/tests
+%{_bindir}/%{bin_cli} \
+   %{buildroot}%{pear_sharedstatedir}/pearcmd.php \
+   run-tests --ini="-d include_path=.:%{buildroot}%{peardir}:%{php_sharedstatedir}" \
    | tee -a $LOG
 
 grep "FAILED TESTS" $LOG && ret=1
@@ -258,40 +313,40 @@ fi
 
 %post
 # force new value as pear.conf is (noreplace)
-current=$(%{_bindir}/pear%{program_suffix} config-get test_dir system)
-if [ "$current" != "%{_datadir}/php7/tests/pear" ]; then
-%{_bindir}/pear%{program_suffix} config-set \
-    test_dir %{_datadir}/php7/tests/pear \
+current=$(%{_bindir}/%{bin_pear} config-get test_dir system)
+if [ "$current" != "%{tests_datadir}/pear" ]; then
+%{_bindir}/%{bin_pear} config-set \
+    test_dir %{tests_datadir}/pear \
     system >/dev/null || :
 fi
 
-current=$(%{_bindir}/pear%{program_suffix} config-get data_dir system)
-if [ "$current" != "%{_datadir}/php7/pear-data" ]; then
-%{_bindir}/pear%{program_suffix} config-set \
-    data_dir %{_datadir}/php7/pear-data \
+current=$(%{_bindir}/%{bin_pear} config-get data_dir system)
+if [ "$current" != "%{pear_datadir}/pear-data" ]; then
+%{_bindir}/%{bin_pear} config-set \
+    data_dir %{pear_datadir}/pear-data \
     system >/dev/null || :
 fi
 
-current=$(%{_bindir}/pear%{program_suffix} config-get metadata_dir system)
+current=$(%{_bindir}/%{bin_pear} config-get metadata_dir system)
 if [ "$current" != "%{metadir}" ]; then
-%{_bindir}/pear%{program_suffix} config-set \
+%{_bindir}/%{bin_pear} config-set \
     metadata_dir %{metadir} \
     system >/dev/null || :
 fi
 
-current=$(%{_bindir}/pear%{program_suffix} config-get -c pecl doc_dir system)
-if [ "$current" != "%{_docdir}/php7/pecl" ]; then
-%{_bindir}/pear%{program_suffix} config-set \
+current=$(%{_bindir}/%{bin_pear} config-get -c pecl doc_dir system)
+if [ "$current" != "%{php_docdir}/pecl" ]; then
+%{_bindir}/%{bin_pear} config-set \
     -c pecl \
-    doc_dir %{_docdir}/php7/pecl \
+    doc_dir %{php_docdir}/pecl \
     system >/dev/null || :
 fi
 
-current=$(%{_bindir}/pear%{program_suffix} config-get -c pecl test_dir system)
-if [ "$current" != "%{_datadir}/php7/tests/pecl" ]; then
-%{_bindir}/pear%{program_suffix} config-set \
+current=$(%{_bindir}/%{bin_pear} config-get -c pecl test_dir system)
+if [ "$current" != "%{tests_datadir}/pecl" ]; then
+%{_bindir}/%{bin_pear} config-set \
     -c pecl \
-    test_dir %{_datadir}/php7/tests/pecl \
+    test_dir %{tests_datadir}/pecl \
     system >/dev/null || :
 fi
 
@@ -311,20 +366,28 @@ fi
 %verify(not mtime)          %{metadir}/.lock
 %{metadir}/.registry
 %{metadir}/pkgxml
-%{_bindir}/*%{program_suffix}
-%config(noreplace) %{_sysconfdir}/php7/pear.conf
+%{_bindir}/%{bin_pear}
+%{_bindir}/%{bin_pecl}
+%{_bindir}/%{bin_peardev}
+%config(noreplace) %{php_sysconfdir}/pear.conf
+%if %{with_relocation}
 %{macrosdir}/macros.pear7
-%dir %{_localstatedir}/cache/php7-pear
-%dir %{_sysconfdir}/php7/pear
+%else
+%{macrosdir}/macros.pear
+%endif
+%dir %{pear_cachedir}
+%dir %{php_sysconfdir}/pear
 %{!?_licensedir:%global license %%doc}
 %license LICENSE*
-%{_datadir}/php7/tests/pear
-%{_datadir}/php7/pear-data
-%dir %{_docdir}/php7/pear
-%doc %{_docdir}/php7/pear/*
+%{tests_datadir}/pear
+%{pear_datadir}/pear-data
+%dir %{php_docdir}/pear
+%doc %{php_docdir}/pear/*
+%if %{with_relocation}
 %exclude %{_bindir}/pear
 %exclude %{_bindir}/peardev
 %exclude %{_bindir}/pecl
+%endif
 
 %files -n php-pear-doc
 %doc README*
