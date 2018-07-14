@@ -46,7 +46,7 @@ jobs:
           no_output_timeout: 2h
       - restore_cache:
           keys:
-            - rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php.spec" }}
+            - rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php7.spec" }}
             - rpm-cache-{{ checksum "requirements.txt" }}
             - rpm-cache-
       - run:
@@ -120,7 +120,7 @@ jobs:
             docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/
             sudo chown -R centos:centos ~/el6/RPMS ~/el7/RPMS
       - save_cache:
-          key: rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php.spec" }}
+          key: rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php7.spec" }}
           paths:
             - ~/el6/RPMS
             - ~/el7/RPMS
