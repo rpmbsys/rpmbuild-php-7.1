@@ -7,7 +7,7 @@ jobs:
       APACHE24_VERSION: 2.4.33-5
       CURL_VERSION: 7.60.0-2
       POSTGRESQL_VERSION: 9.6.9-2
-      PHP_VERSION: 7.1.19-2
+      PHP_VERSION: 7.1.19-3
     steps:
       - run:
           name: Upgrade Docker CE

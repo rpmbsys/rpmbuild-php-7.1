@@ -174,7 +174,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 2
+%global rpmrel 3
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -895,9 +895,7 @@ ln -sf ../configure
     --with-icu-dir=%{_prefix} \
     --with-imap \
     --with-imap-ssl \
-%if 0%{?fedora} || 0%{?rhel} >= 7
     --with-kerberos \
-%endif
     --with-jpeg-dir=%{_prefix} \
     --with-layout=GNU \
     --with-libdir=%{_lib} \
@@ -1478,6 +1476,9 @@ fi
 %endif
 
 %changelog
+* Sat Jul 14 2018 Alexander Ursu <alexander.ursu@gmail.com> 7.1.19-3
+- added --with-kerberos option for CentOS 6 build as well
+
 * Thu Jul 05 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.19-2
 - Fixed bug with unresolved php-common dependency for libmysql
   build
@@ -1530,7 +1531,7 @@ fi
 - enable PHP execution of .phar files, see #1117140
 
 * Tue Sep 12 2017 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.6-4
-- moved xmlrpc into php-common 
+- moved xmlrpc into php-common
 - removed pgsql extension from CGI config
 
 * Wed Jun 28 2017 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.6-2
