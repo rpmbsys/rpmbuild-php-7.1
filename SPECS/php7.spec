@@ -1483,7 +1483,7 @@ fi
 %changelog
 * Sat Jul 14 2018 Alexander Ursu <alexander.ursu@gmail.com> 7.1.19-3
 - added --with-kerberos option for CentOS 6 build as well
-- added _httpd_apxs macro (not defined in CentOD 6)
+- added httpd macros (not defined in CentOS 6)
 
 * Thu Jul 05 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.19-2
 - Fixed bug with unresolved php-common dependency for libmysql
