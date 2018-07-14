@@ -160,10 +160,11 @@ jobs:
           name: Build PHP Docker build images
           command: |
             sleep 30
-            docker-compose -f docker-compose.build.yml build --no-cache centos7php7build
+            docker-compose -f docker-compose.build.yml build --no-cache
             docker push aursu/php7build:7-build
-            docker-compose -f docker-compose.build.yml build --no-cache centos6php7build
+            docker push aursu/php7build:7-build-rel
             docker push aursu/php7build:6-build
+            docker push aursu/php7build:6-build-rel
       - store_artifacts:
           path: ~/el6/RPMS
       - store_artifacts:
