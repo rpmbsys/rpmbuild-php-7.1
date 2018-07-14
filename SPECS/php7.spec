@@ -158,7 +158,11 @@
 %global  _nginx_home    %{_localstatedir}/lib/nginx
 # needed at srpm build time, when httpd-devel not yet installed
 %{!?_httpd_mmn:         %{expand: %%global _httpd_mmn        %%(cat %{_includedir}/httpd/.mmn 2>/dev/null || echo 0-0)}}
+
 %{!?_httpd_apxs: %global _httpd_apxs %{_sbindir}/apxs}
+%{!?_httpd_contentdir: %global _httpd_contentdir /var/www}
+%{!?_httpd_confdir: %global _httpd_confdir %{_sysconfdir}/httpd/conf.d}
+%{!?_httpd_moddir: %global _httpd_moddir %{_libdir}/httpd/modules}
 
 %global with_dtrace 1
 %global with_zip    1
