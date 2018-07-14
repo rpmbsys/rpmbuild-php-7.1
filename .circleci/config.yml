@@ -116,8 +116,8 @@ jobs:
           command: |
             rm -rf ~/el6 ~/el7
             mkdir -p ~/el6 ~/el7
-            docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/el6/
-            docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/
+            sudo docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/el6/
+            sudo docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/
             sudo chown -R centos:centos ~/el6/RPMS ~/el7/RPMS
       - save_cache:
           key: rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php7.spec" }}
