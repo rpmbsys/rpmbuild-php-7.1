@@ -1,0 +1,10 @@
+FROM aursu/rpmbuild:7-build
+
+USER root
+RUN yum -y install --enablerepo custom \
+        php7-cli \
+        php7-common \
+        php7-devel \
+        php7-process \
+        php7-xml \
+    && yum clean all && rm -rf /var/cache/yum
