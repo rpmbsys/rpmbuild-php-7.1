@@ -1,0 +1,23 @@
+version: "3.5"
+services:
+  centos6php7build:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.build
+      network: buildnet
+    image: aursu/php7build:6-build
+  centos7php7build:
+    networks:
+      - buildnet
+    build:
+      context: .
+      dockerfile: Dockerfile.el7-build
+      network: buildnet
+    image: aursu/php7build:7-build
+
+networks:
+  buildnet:
+    external: true
+    name: buildnet
