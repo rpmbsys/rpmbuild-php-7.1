@@ -41,7 +41,9 @@ jobs:
             git submodule update --init
       - run:
           name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
+          command: |
+            docker-compose -f rpmbuild/docker-compose.yml pull
+            docker-compose -f rpmbuild/docker-compose.yml up -d
           background: true
           no_output_timeout: 2h
       - restore_cache:
@@ -52,6 +54,7 @@ jobs:
       - run:
           name: Restore Repository
           command: |
+            sleep 30
             if [ -d ~/el6/RPMS ]; then
               sudo chown -R centos:centos ~/el6/RPMS
               sudo docker cp -a ~/el6/RPMS rpmbuild_webrepo_1:/home/centos-6/rpmbuild/
