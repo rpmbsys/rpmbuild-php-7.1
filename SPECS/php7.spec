@@ -179,12 +179,12 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 3
+%global rpmrel 1
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.19
+Version: 7.1.20
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -1481,6 +1481,9 @@ fi
 %endif
 
 %changelog
+* Thu Jul 19 2018 Remi Collet <remi@remirepo.net> - 7.1.20-1
+- Update to 7.1.20 - http://www.php.net/releases/7_1_20.php
+
 * Sat Jul 14 2018 Alexander Ursu <alexander.ursu@gmail.com> 7.1.19-3
 - added --with-kerberos option for CentOS 6 build as well
 - added httpd macros (not defined in CentOS 6)
