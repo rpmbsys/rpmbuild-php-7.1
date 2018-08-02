@@ -179,7 +179,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 1
+%global rpmrel 2
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -390,9 +390,6 @@ Provides: php-imap, php-imap%{?_isa}
 Provides: php-intl, php-intl%{?_isa}
 # As of PHP 5.2.0, the JSON extension is bundled and compiled into PHP by default
 Provides: php-json, php-json%{?_isa}
-%if %{with_relocation}
-Provides: %{php_main}-json, %{php_main}-json%{?_isa}
-%endif
 Provides: bundled(libmbfl) = 1.3.2
 # The libxml extension is enabled by default
 Provides: php-libxml, php-libxml%{?_isa}
@@ -453,6 +450,17 @@ Provides: php-zip, php-zip%{?_isa}
 Provides: php-zlib, php-zlib%{?_isa}
 %if %{with_ap24} || %{with_libmysql}
 Provides: %{php_common}%{?_isa} = %{version}-%{baserel}
+%endif
+%if ! %{with_relocation}
+Obsoletes: php-dba < %{version}-%{baserel}
+Obsoletes: php-gd < %{version}-%{baserel}
+Obsoletes: php-imap < %{version}-%{baserel}
+Obsoletes: php-intl  < %{version}-%{baserel}
+Obsoletes: php-mbstring < %{version}-%{baserel}
+Obsoletes: php-mcrypt < %{version}-%{baserel}
+Obsoletes: php-pdo < %{version}-%{baserel}
+Obsoletes: php-soap < %{version}-%{baserel}
+Obsoletes: php-xmlrpc < %{version}-%{baserel}
 %endif
 
 %description common
@@ -1481,6 +1489,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 02 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.20-2
+- added obsoletes dependencies
+
 * Thu Jul 19 2018 Remi Collet <remi@remirepo.net> - 7.1.20-1
 - Update to 7.1.20 - http://www.php.net/releases/7_1_20.php
 
