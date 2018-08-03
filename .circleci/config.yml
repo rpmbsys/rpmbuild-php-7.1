@@ -155,6 +155,7 @@ jobs:
       - run:
           name: Upload RPM packages into Bintray
           command: |
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
             docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
               -e BINTRAY_USER=$BINTRAY_USER \
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
