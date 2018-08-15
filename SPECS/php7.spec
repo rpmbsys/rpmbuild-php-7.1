@@ -179,7 +179,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 2
+%global rpmrel 3
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -908,8 +908,8 @@ ln -sf ../configure
     --with-icu-dir=%{_prefix} \
     --with-imap \
     --with-imap-ssl \
-    --with-kerberos \
     --with-jpeg-dir=%{_prefix} \
+    --with-kerberos \
     --with-layout=GNU \
     --with-libdir=%{_lib} \
     --with-mcrypt=%{_prefix} \
@@ -922,7 +922,6 @@ ln -sf ../configure
     --with-pdo-mysql=mysqlnd \
 %endif
     --with-openssl \
-    --without-pear \
     --with-pdo-odbc=unixODBC,%{_prefix} \
     --with-pic \
     --with-png-dir=%{_prefix} \
@@ -930,6 +929,7 @@ ln -sf ../configure
     --with-system-tzdata \
     --with-xmlrpc \
     --with-zlib \
+    --without-pear \
 %if %{with_dtrace}
     --enable-dtrace \
 %endif
@@ -980,10 +980,10 @@ pushd build-cgi
 
 build \
 %if %{with_relocation}
-      --program-suffix=%{program_suffix} \
+    --program-suffix=%{program_suffix} \
 %endif
-      --disable-cli \
-      --with-config-file-scan-dir=%{php_sysconfdir}/php-cgi-fcgi.d
+    --disable-cli \
+    --with-config-file-scan-dir=%{php_sysconfdir}/php-cgi-fcgi.d
 popd
 %endif
 
@@ -1015,16 +1015,16 @@ popd
 pushd build-fpm
 build --enable-fpm \
 %if %{with_relocation}
-      --program-suffix=%{program_suffix} \
+    --program-suffix=%{program_suffix} \
 %endif
-      --with-fpm-acl \
+    --with-fpm-acl \
 %if 0%{?rhel} >= 7
-      --with-fpm-systemd \
+    --with-fpm-systemd \
 %endif
-      --disable-cgi \
-      --disable-cli \
-      ${without_shared} \
-      --with-config-file-scan-dir=%{php_sysconfdir}/php.d
+    --disable-cgi \
+    --disable-cli \
+    ${without_shared} \
+    --with-config-file-scan-dir=%{php_sysconfdir}/php.d
 popd
 %endif
 
@@ -1170,7 +1170,7 @@ install -m 644 %{SOURCE7} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/%{fpm_logrot
 # Nginx configuration
 install -D -m 644 %{SOURCE13} $RPM_BUILD_ROOT%{_sysconfdir}/nginx/conf.d/%{fpm_name}.conf
 install -D -m 644 %{SOURCE14} $RPM_BUILD_ROOT%{_sysconfdir}/nginx/default.d/%{main_name}.conf
-%endif  # if %{with_relocation}
+%endif # if %{with_relocation}
 
 mv $RPM_BUILD_ROOT%{fpm_config}.default .
 mv $RPM_BUILD_ROOT%{fpm_config_d}/www.conf.default .
@@ -1186,7 +1186,7 @@ install -m 755 -d $RPM_BUILD_ROOT%{_unitdir}
 install -m 644 %{SOURCE106} $RPM_BUILD_ROOT%{_unitdir}/%{fpm_unit}
 %else
 install -m 644 %{SOURCE6} $RPM_BUILD_ROOT%{_unitdir}/%{fpm_unit}
-%endif  # if %{with_relocation}
+%endif # if %{with_relocation}
 %else
 # Service
 install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
@@ -1194,9 +1194,9 @@ install -m 755 -d $RPM_BUILD_ROOT%{_sysconfdir}/init.d
 install -m 755 %{SOURCE110} $RPM_BUILD_ROOT%{_sysconfdir}/init.d/%{fpm_service}
 %else
 install -m 755 %{SOURCE10} $RPM_BUILD_ROOT%{_sysconfdir}/init.d/%{fpm_service}
-%endif  # with_relocation
-%endif  # rhel >= 7
-%endif  # with_fpm
+%endif # if %{with_relocation}
+%endif # rhel >= 7
+%endif # with_fpm
 
 %if %{with_modules}
 # Generate files lists and stub .ini files for each subpackage
@@ -1366,6 +1366,7 @@ fi
 %files common
 %doc CODING_STANDARDS CREDITS EXTENSIONS NEWS README*
 %doc LICENSE TSRM_LICENSE libmagic_LICENSE phar_LICENSE timelib_LICENSE
+%doc libmbfl_LICENSE ucgendat_LICENSE
 %doc php.ini-*
 %config(noreplace) %{php_sysconfdir}/php.ini
 %dir %{php_sysconfdir}/php.d
@@ -1457,9 +1458,6 @@ fi
 
 %if %{with_xml}
 %files xml -f files.xml
-%doc libmbfl_LICENSE
-%doc oniguruma_COPYING
-%doc ucgendat_LICENSE
 %endif
 
 %if %{with_bcmath}
@@ -1489,6 +1487,9 @@ fi
 %endif
 
 %changelog
+* Wed Aug 15 2018 Alexander Ursu <alexander.ursu@gmail.com> 7.1.20-3
+- moved license files from php-xml to php-common
+
 * Thu Aug 02 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.20-2
 - added obsoletes dependencies
 
