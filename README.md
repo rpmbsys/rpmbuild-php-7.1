@@ -11,10 +11,6 @@
 
     http://blog.zend.com/2016/10/10/zend-guard-and-php-7/
 
-* no **ioncube** (but at least expected)
-
-    http://forum.ioncube.com/viewtopic.php?t=4419&sid=be0fbff13a130ae51cd939c71048ed66
-
 * no **mssql** (just discontinued with reference to ODBC)
 
     http://php.net/manual/en/intro.mssql.php
