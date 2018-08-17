@@ -7,7 +7,7 @@ jobs:
       APACHE24_VERSION: 2.4.34-3
       CURL_VERSION: 7.61.0-1
       POSTGRESQL_VERSION: 9.6.9-2
-      PHP_VERSION: 7.1.20-3
+      PHP_VERSION: 7.1.21-1
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - run:
@@ -183,7 +183,3 @@ jobs:
             docker push aursu/php7build:7-build-rel
             docker push aursu/php7build:6-build
             docker push aursu/php7build:6-build-rel
-      - store_artifacts:
-          path: ~/el6/RPMS
-      - store_artifacts:
-          path: ~/el7/RPMS
