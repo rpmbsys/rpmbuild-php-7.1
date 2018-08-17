@@ -179,12 +179,12 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 3
+%global rpmrel 1
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.20
+Version: 7.1.21
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -261,7 +261,6 @@ Patch300: php-5.6.3-datetests.patch
 Patch405: php7-php-7.0.0-includedir.patch
 Patch409: php-7.0.8-relocation.patch
 
-# No interactive mode for CLI/CGI - disable libedit
 BuildRequires: autoconf
 BuildRequires: bison
 BuildRequires: bzip2-devel
@@ -276,7 +275,11 @@ BuildRequires: httpd-devel >= 2.4
 BuildRequires: httpd-devel >= 2.2
 BuildRequires: httpd-devel < 2.4
 %endif
+%if 0%{?rhel} >= 7
 BuildRequires: libcurl-devel
+%else
+BuildRequires: libcurl-devel >= 7.44
+%endif
 BuildRequires: libc-client-devel
 BuildRequires: libicu-devel
 BuildRequires: libjpeg-devel
@@ -290,19 +293,19 @@ BuildRequires: libxml2-devel
 %if %{with_libzip}
 BuildRequires: libzip-devel >= 0.11
 %endif
+%if %{with_libmysql}
+BuildRequires: mysql-devel
+%endif
 BuildRequires: openssl-devel
 BuildRequires: pcre-devel
 BuildRequires: perl
 BuildRequires: smtpdaemon
 BuildRequires: sqlite-devel
-BuildRequires: unixODBC-devel
-BuildRequires: zlib-devel
 %if %{with_dtrace}
 BuildRequires: systemtap-sdt-devel
 %endif
-%if %{with_libmysql}
-BuildRequires: mysql-devel
-%endif
+BuildRequires: unixODBC-devel
+BuildRequires: zlib-devel
 Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 
 Requires: httpd-mmn = %{_httpd_mmn}
@@ -310,7 +313,12 @@ Requires: httpd-mmn = %{_httpd_mmn}
 # to ensure we are using httpd with filesystem feature (see #1081453)
 Requires: httpd-filesystem >= 2.4
 %endif
+%if 0%{?rhel} >= 7
 Requires: libcurl
+%else
+Requires: libcurl >= 7.44
+%endif
+
 
 Requires(pre): httpd
 
@@ -370,7 +378,6 @@ Provides: php-dba, php-dba%{?_isa}
 Provides: php-exif, php-exif%{?_isa}
 # This extension is enabled by default as of PHP 5.3.0
 Provides: php-fileinfo, php-fileinfo%{?_isa}
-Provides: bundled(libmagic) = 5.29
 # the filter extension is enabled by default as of PHP 5.2.0
 Provides: php-filter, php-filter%{?_isa}
 # to use FTP functions with your PHP configuration, you should add the --enable-ftp
@@ -390,6 +397,7 @@ Provides: php-imap, php-imap%{?_isa}
 Provides: php-intl, php-intl%{?_isa}
 # As of PHP 5.2.0, the JSON extension is bundled and compiled into PHP by default
 Provides: php-json, php-json%{?_isa}
+Provides: bundled(libmagic) = 5.29
 Provides: bundled(libmbfl) = 1.3.2
 # The libxml extension is enabled by default
 Provides: php-libxml, php-libxml%{?_isa}
@@ -400,7 +408,7 @@ Provides: php-mbstring, php-mbstring%{?_isa}
 Provides: php-mcrypt, php-mcrypt%{?_isa}
 Provides: php-mysqli%{?_isa} = %{version}-%{baserel}
 Provides: php-mysqli = %{version}-%{baserel}
-# mysql extension was DEPRECATED in PHP 5.5.0, and it was removed in PHP 7.0.0 (comented out therefore)
+# mysql extension was DEPRECATED in PHP 5.5.0, and it was removed in PHP 7.0.0
 # As of 5.4.0 The MySQL Native Driver is now the default for all MySQL extensions
 %if ! %{with_libmysql}
 Provides: php-mysqlnd = %{version}-%{baserel}
@@ -420,10 +428,10 @@ Provides: php(pdo-abi) = %{pdover}%{isasuffix}
 Provides: php-pdo_mysql, php-pdo_mysql%{?_isa}
 # PDO and the PDO_SQLITE driver is enabled by default as of PHP 5.1.0
 Provides: php-pdo_sqlite, php-pdo_sqlite%{?_isa}
-Provides: php-pecl-json          = %{jsonver}
 Provides: php-pecl(json)         = %{jsonver}
-Provides: php-pecl-json%{?_isa}  = %{jsonver}
 Provides: php-pecl(json)%{?_isa} = %{jsonver}
+Provides: php-pecl-json          = %{jsonver}
+Provides: php-pecl-json%{?_isa}  = %{jsonver}
 # The Phar extension is built into PHP as of PHP version 5.3.0
 Provides: php-phar, php-phar%{?_isa}
 # they are part of the PHP core
@@ -471,6 +479,7 @@ package and the %{php_cli} package.
 %package cli
 Group: Development/Languages
 Summary: Command-line interface for PHP
+# No interactive mode for CLI/CGI - disable libedit
 Requires: %{php_common}%{?_isa} = %{version}-%{baserel}
 %if %{with_ap24}
 Provides: %{php_cli}%{?_isa} = %{version}-%{baserel}
@@ -1487,6 +1496,9 @@ fi
 %endif
 
 %changelog
+* Thu Aug 16 2018 Remi Collet <remi@remirepo.net> - 7.1.21-1
+- Update to 7.1.21 - http://www.php.net/releases/7_1_21.php
+
 * Wed Aug 15 2018 Alexander Ursu <alexander.ursu@gmail.com> 7.1.20-3
 - moved license files from php-xml to php-common
 
