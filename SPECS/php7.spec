@@ -179,7 +179,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 1
+%global rpmrel 2
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -1496,6 +1496,9 @@ fi
 %endif
 
 %changelog
+* Tue Aug 28 2018 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.21-2
+- upgrade ionCube extension to version 10.2.1
+
 * Thu Aug 16 2018 Remi Collet <remi@remirepo.net> - 7.1.21-1
 - Update to 7.1.21 - http://www.php.net/releases/7_1_21.php
 
