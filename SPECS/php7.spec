@@ -184,7 +184,7 @@
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.25
+Version: 7.1.26
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -1496,8 +1496,8 @@ fi
 %endif
 
 %changelog
-* Thu Jan 10 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.25-1
-- Update to 7.1.23 - http://www.php.net/releases/7_1_25.php
+* Thu Jan 10 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.26-1
+- Update to 7.1.26 - http://www.php.net/releases/7_1_26.php
 
 * Wed Oct 10 2018 Remi Collet <remi@remirepo.net> - 7.1.23-1
 - Update to 7.1.23 - http://www.php.net/releases/7_1_23.php

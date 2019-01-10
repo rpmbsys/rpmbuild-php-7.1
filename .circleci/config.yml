@@ -7,7 +7,7 @@ jobs:
       APACHE24_VERSION: 2.4.37-1
       CURL_VERSION: 7.63.0-5
       POSTGRESQL_VERSION: 9.6.11-1
-      PHP_VERSION: 7.1.25-1
+      PHP_VERSION: 7.1.26-1
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - run:
