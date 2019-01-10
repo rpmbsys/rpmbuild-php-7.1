@@ -1593,7 +1593,7 @@ fi
 * Wed Mar 15 2017 Remi Collet <remi@fedoraproject.org> - 7.1.3-2
 - remove %%attr, see #1432372
 
-* Fri Nov 24 2016 Remi Collet <remi@fedoraproject.org> 7.0.13-2
+* Thu Nov 24 2016 Remi Collet <remi@fedoraproject.org> 7.0.13-2
 - disable pcre.jit everywhere as it raise AVC #1398474
 
 * Wed Nov  9 2016 Remi Collet <remi@fedoraproject.org> 7.0.13-1

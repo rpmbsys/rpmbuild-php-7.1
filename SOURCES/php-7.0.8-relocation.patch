@@ -10,7 +10,7 @@ diff -rup php-7.0.8.orig/ext/pdo/Makefile.frag php-7.0.8/ext/pdo/Makefile.frag
 diff -rup php-7.0.8.orig/ext/phar/Makefile.frag php-7.0.8/ext/phar/Makefile.frag
 --- php-7.0.8.orig/ext/phar/Makefile.frag	2016-06-21 21:56:46.000000000 +0200
 +++ php-7.0.8/ext/phar/Makefile.frag	2016-07-21 14:55:51.681000000 +0200
-@@ -37,10 +37,10 @@ $(builddir)/phar.phar: $(builddir)/phar.
+@@ -37,9 +37,9 @@ $(builddir)/phar.phar: $(builddir)/phar.
  
  install-pharcmd: pharcmd
  	-@$(mkinstalldirs) $(INSTALL_ROOT)$(bindir)
@@ -25,11 +25,10 @@ diff -rup php-7.0.8.orig/ext/phar/Makefile.frag php-7.0.8/ext/phar/Makefile.frag
 -	@$(INSTALL_DATA) $(builddir)/phar.phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar.phar.1
 +	@$(INSTALL_DATA) $(builddir)/phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar$(program_suffix).1
 +	@$(INSTALL_DATA) $(builddir)/phar.phar.1 $(INSTALL_ROOT)$(mandir)/man1/phar.phar$(program_suffix).1
- 
 diff -rup php-7.0.8.orig/sapi/cgi/Makefile.frag php-7.0.8/sapi/cgi/Makefile.frag
 --- php-7.0.8.orig/sapi/cgi/Makefile.frag	2016-06-21 21:56:42.000000000 +0200
 +++ php-7.0.8/sapi/cgi/Makefile.frag	2016-07-21 15:16:46.685000000 +0200
-@@ -6,8 +6,8 @@ $(SAPI_CGI_PATH): $(PHP_GLOBAL_OBJS) $(P
+@@ -6,7 +6,7 @@ $(SAPI_CGI_PATH): $(PHP_GLOBAL_OBJS) $(P
  install-cgi: $(SAPI_CGI_PATH)
  	@echo "Installing PHP CGI binary:        $(INSTALL_ROOT)$(bindir)/"
  	@$(mkinstalldirs) $(INSTALL_ROOT)$(bindir)
@@ -39,7 +38,6 @@ diff -rup php-7.0.8.orig/sapi/cgi/Makefile.frag php-7.0.8/sapi/cgi/Makefile.frag
  	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man1
 -	@$(INSTALL_DATA) sapi/cgi/php-cgi.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)php-cgi$(program_suffix).1
 +	@$(INSTALL_DATA) sapi/cgi/php-cgi.1 $(INSTALL_ROOT)$(mandir)/man1/$(program_prefix)php$(program_suffix)-cgi.1
- 
 diff -rup php-7.0.8.orig/sapi/fpm/fpm/fpm_conf.c php-7.0.8/sapi/fpm/fpm/fpm_conf.c
 --- php-7.0.8.orig/sapi/fpm/fpm/fpm_conf.c	2016-06-21 21:56:41.000000000 +0200
 +++ php-7.0.8/sapi/fpm/fpm/fpm_conf.c	2016-07-21 17:44:01.150000000 +0200
@@ -118,7 +116,7 @@ diff -rup php-7.0.8.orig/sapi/fpm/Makefile.frag php-7.0.8/sapi/fpm/Makefile.frag
 +		$(INSTALL_DATA) sapi/fpm/php-fpm.conf $(INSTALL_ROOT)$(sysconfdir)/php$(program_suffix)-fpm.conf.default; \
 +		$(INSTALL_DATA) sapi/fpm/www.conf $(INSTALL_ROOT)$(sysconfdir)/php$(program_suffix)-fpm.d/www.conf.default; \
  	fi
- 	
+ 
  	@echo "Installing PHP FPM man page:      $(INSTALL_ROOT)$(mandir)/man8/"
  	@$(mkinstalldirs) $(INSTALL_ROOT)$(mandir)/man8
 -	@$(INSTALL_DATA) sapi/fpm/php-fpm.8 $(INSTALL_ROOT)$(mandir)/man8/php-fpm$(program_suffix).8
