@@ -4,10 +4,10 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      APACHE24_VERSION: 2.4.34-3
-      CURL_VERSION: 7.61.0-1
-      POSTGRESQL_VERSION: 9.6.9-2
-      PHP_VERSION: 7.1.22-1
+      APACHE24_VERSION: 2.4.37-1
+      CURL_VERSION: 7.63.0-5
+      POSTGRESQL_VERSION: 9.6.11-1
+      PHP_VERSION: 7.1.23-1
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - run:
