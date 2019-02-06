@@ -145,15 +145,7 @@
 
 %global mysql_sock %(mysql_config --socket 2>/dev/null || echo /var/lib/mysql/mysql.sock)
 
-%if 0%{?fedora}
 %global isasuffix -%{__isa_bits}
-%else
-%if 0%{?__isa:1}
-%global isasuffix -%{__isa}
-%else
-%global isasuffix %nil
-%endif
-%endif
 
 %global  _nginx_home    %{_localstatedir}/lib/nginx
 # needed at srpm build time, when httpd-devel not yet installed
@@ -179,7 +171,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 1
+%global rpmrel 2
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -1496,6 +1488,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb  6 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.26-2
+- fixed zend api RPM version
+
 * Thu Jan 10 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.26-1
 - Update to 7.1.26 - http://www.php.net/releases/7_1_26.php
 
