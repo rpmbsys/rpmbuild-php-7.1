@@ -36,7 +36,7 @@ jobs:
       - run:
           name: Build PHP Docker images
           command: |
-            docker-compose -f docker-compose.base.yml build --no-cache
+            docker-compose -f docker-compose.base.yml build --no-cache --pull
             docker-compose build --no-cache
       - run:
           name: Build PHP 7.1 RPM packages
