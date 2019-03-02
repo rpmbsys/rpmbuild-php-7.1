@@ -1,15 +1,15 @@
-FROM aursu/rpmbuild:7-build
+FROM aursu/rpmbuild:6-build
 
 USER root
 RUN yum -y install \
         bzip2-devel \
         cyrus-sasl-devel \
+        db4-devel \
         freetype-devel \
         gdbm-devel \
         httpd-devel \
         libacl-devel \
-        libcurl-devel \
-        libdb-devel \
+        libc-client-devel \
         libicu-devel \
         libjpeg-turbo-devel \
         libmcrypt-devel \
@@ -23,17 +23,14 @@ RUN yum -y install \
         openldap-devel \
         openssl-devel \
         pcre-devel \
-        postgresql-devel \
         sendmail \
         sqlite-devel \
-        systemd-devel \
         systemtap-sdt-devel \
         unixODBC-devel \
-        uw-imap-devel \
         zlib-devel \
     && yum clean all && rm -rf /var/cache/yum
 
-# Use stock CentOS 7 httpd-2.4.6
-#RUN yum -y --enablerepo custom install \
-#        httpd-devel \
-#    && yum clean all && rm -rf /var/cache/yum
+RUN yum -y --enablerepo=bintray-custom install \
+        libcurl-devel \
+        postgresql-devel \
+    && yum clean all && rm -rf /var/cache/yum

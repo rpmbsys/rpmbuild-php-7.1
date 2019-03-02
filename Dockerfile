@@ -1,4 +1,4 @@
-FROM aursu/php7build:6-base
+FROM aursu/php7build:7-base
 
 COPY SOURCES ${BUILD_TOPDIR}/SOURCES
 COPY SPECS ${BUILD_TOPDIR}/SPECS
