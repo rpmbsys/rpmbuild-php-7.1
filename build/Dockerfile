@@ -1,4 +1,6 @@
-FROM aursu/rpmbuild:6-build
+ARG centos=7
+
+FROM aursu/rpmbuild:${centos}-build
 
 USER root
 RUN yum -y install --enablerepo custom \
