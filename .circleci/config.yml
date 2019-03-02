@@ -4,10 +4,6 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      APACHE24_VERSION: 2.4.38-2
-      CURL_VERSION: 7.63.0-5
-      POSTGRESQL_VERSION: 9.6.11-1
-      PHP_VERSION: 7.1.26-2
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - run:
@@ -18,22 +14,8 @@ jobs:
       - run:
           name: Upgrade Docker Compose
           command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+            sudo curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
-      - run:
-          name: Create Build User/Group
-          command: |
-            if getent group centos; then
-              sudo groupmod -o -g 48 centos
-            else
-              sudo groupadd -o -g 48 centos
-            fi
-
-            if getent passwd centos; then
-              sudo usermod -o -u 48 -g centos centos
-            else
-              sudo useradd -o -u 48 -g centos -M -d /var/www/html centos
-            fi
       - checkout
       - run:
           name: Git submodules sync
@@ -41,121 +23,27 @@ jobs:
             git submodule sync
             git submodule update --init
       - run:
-          name: Start docker services for rpmbuild
+          name: Pull images for RPM build docker services
           command: |
             docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.yml up -d
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
+            docker-compose -f rpmbuild/docker-compose.refresh.yml pull
+      - run:
+          name: Start docker services for rpmbuild
+          command: docker-compose -f rpmbuild/docker-compose.yml up -d
           background: true
           no_output_timeout: 2h
-      - restore_cache:
-          keys:
-            - rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php7.spec" }}
-            - rpm-cache-{{ checksum "requirements.txt" }}
-            - rpm-cache-
-      - run:
-          name: Restore Repository
-          command: |
-            sleep 30
-            if [ -d ~/el6/RPMS ]; then
-              sudo chown -R centos:centos ~/el6/RPMS
-              sudo docker cp -a ~/el6/RPMS rpmbuild_webrepo_1:/home/centos-6/rpmbuild/
-            fi
-            if [ -d ~/el7/RPMS ]; then
-              sudo chown -R centos:centos ~/el7/RPMS
-              docker cp -a ~/el7/RPMS rpmbuild_webrepo_1:/home/centos-7/rpmbuild/
-            fi
-      - run:
-          name: Checkout Curl
-          command: |
-            git clone https://github.com/aursu/rpmbuild-curl.git
-            cd rpmbuild-curl
-            git checkout $CURL_VERSION
-      - run:
-          name: Build Curl
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build \
-            yum -q list --disablerepo=* --enablerepo custom libcurl-devel | grep -q $CURL_VERSION ||
-            {
-              docker pull aursu/curlbuild:el7
-              docker-compose -f rpmbuild-curl/docker-compose.yml up centos7curlbuild
-            }
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build \
-            yum -q list --disablerepo=* --enablerepo custom libcurl-devel | grep -q $CURL_VERSION ||
-            {
-              docker pull aursu/curlbuild:el6
-              docker-compose -f rpmbuild-curl/docker-compose.yml up centos6curlbuild
-            }
-      - run:
-          name: Checkout PostgreSQL 9.6
-          command: |
-            git clone https://github.com/aursu/rpmbuild-postgresql.git
-            cd rpmbuild-postgresql
-            git checkout $POSTGRESQL_VERSION
-      - run:
-          name: Build PostgreSQL 9.6
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build \
-            yum -q list --disablerepo=* --enablerepo custom postgresql-devel | grep -q $POSTGRESQL_VERSION ||
-            {
-              docker pull aursu/pgbuild:el7
-              docker-compose -f rpmbuild-postgresql/docker-compose.yml up postgresql7build
-            }
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build \
-            yum -q list --disablerepo=* --enablerepo custom postgresql-devel | grep -q $POSTGRESQL_VERSION ||
-            {
-              docker pull aursu/pgbuild:el6
-              docker-compose -f rpmbuild-postgresql/docker-compose.yml up postgresql6build
-            }
-      - run:
-          name: Checkout Apache 2.4
-          command: |
-            git clone https://github.com/aursu/rpmbuild-httpd-2.4.git
-            cd rpmbuild-httpd-2.4
-            git checkout $APACHE24_VERSION
-      - run:
-          name: Build Apache 2.4
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build \
-            yum -q list --disablerepo=* --enablerepo custom httpd-devel | grep -q $APACHE24_VERSION ||
-            {
-              docker pull aursu/ap24build:el7
-              docker-compose -f rpmbuild-httpd-2.4/docker-compose.yml up centos7ap24build
-            }
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build \
-            yum -q list --disablerepo=* --enablerepo custom httpd-devel | grep -q $APACHE24_VERSION ||
-            {
-              docker pull aursu/ap24build:el6
-              docker-compose -f rpmbuild-httpd-2.4/docker-compose.yml up centos6ap24build
-            }
       - run:
           name: Build PHP Docker images
           command: |
-            docker-compose -f docker-compose.el7.yml build --no-cache
+            docker-compose -f docker-compose.base.yml build --no-cache
             docker-compose build --no-cache
       - run:
           name: Build PHP 7.1 RPM packages
-          command: |
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:7-build yum -q list --disablerepo=* --enablerepo custom php-devel | grep -q $PHP_VERSION ||
-              docker-compose -f docker-compose.el7.yml up centos7php7 centos7php7rel
-            docker run -ti --rm --net buildnet -u root aursu/rpmbuild:6-build yum -q list --disablerepo=* --enablerepo custom php-devel | grep -q $PHP_VERSION ||
-              docker-compose up centos6php7 centos6php7rel
-      - run:
-          name: Copy RPM packages
-          command: |
-            sudo rm -rf ~/el6 ~/el7
-            mkdir -p ~/el6 ~/el7
-            docker cp rpmbuild_webrepo_1:/home/centos-6/rpmbuild/RPMS ~/el6/
-            docker cp rpmbuild_webrepo_1:/home/centos-7/rpmbuild/RPMS ~/el7/
-            sudo chown -R centos:centos ~/el6/RPMS ~/el7/RPMS
-      - save_cache:
-          key: rpm-cache-{{ checksum "requirements.txt" }}-{{ checksum "SPECS/php7.spec" }}
-          paths:
-            - ~/el6/RPMS
-            - ~/el7/RPMS
+          command: docker-compose up
       - run:
           name: Upload RPM packages into Bintray
           command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
             docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
               -e BINTRAY_USER=$BINTRAY_USER \
               -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
@@ -167,18 +55,17 @@ jobs:
               -e BINTRAY_REPO=$BINTRAY_REPO \
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
       - run:
-          name: Deploy PHP 7.1 Docker images
+          name: refresh repositories
+          command: |
+            docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos7refresh
+            docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos6refresh
+      - run:
+          name: Build PHP build Docker images (PHP 7.1)
+          command: docker-compose -f build/docker-compose.yml build --no-cache --pull
+      - run:
+          name: Build PHP build Docker images (PHP 7.1)
           command: |
             docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:6-base
-            docker push aursu/php7build:6-ap24base
-            docker push aursu/php7build:el6
-            docker push aursu/php7build:6-ap24
-      - run:
-          name: Build PHP Docker build images
-          command: |
-            sleep 30
-            docker-compose -f docker-compose.build.yml build --no-cache
             docker push aursu/php7build:7-build
             docker push aursu/php7build:7-build-rel
             docker push aursu/php7build:6-build

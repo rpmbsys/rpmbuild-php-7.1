@@ -29,11 +29,8 @@ RUN yum -y install \
         zlib-devel \
     && yum clean all && rm -rf /var/cache/yum
 
-RUN yum -y --enablerepo custom install \
+RUN yum -y --enablerepo=bintray-custom install \
+        "httpd-devel >= 2.4" \
         libcurl-devel \
         postgresql-devel \
-    && yum clean all && rm -rf /var/cache/yum
-
-RUN yum -y --enablerepo custom install \
-        "httpd-devel >= 2.4" \
     && yum clean all && rm -rf /var/cache/yum
