@@ -1,35 +1,5 @@
 version: "3.5"
 services:
-  centos6php7:
-    volumes:
-      - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm6:/home/centos/rpmbuild/RPMS
-    build:
-      context: .
-      dockerfile: Dockerfile.el6
-  centos6php7rel:
-    command: ["-ba", "--with", "relocation"]
-    volumes:
-      - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm6:/home/centos/rpmbuild/RPMS
-    build:
-      context: .
-      dockerfile: Dockerfile.el6
-  centos6php7ap24:
-    volumes:
-      - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm6:/home/centos/rpmbuild/RPMS
-    build:
-      context: .
-      dockerfile: Dockerfile.ap24
-  centos6php7ap24rel:
-    command: ["-ba", "--with", "relocation"]
-    volumes:
-      - rpms:/home/centos/rpmbuild/SRPMS
-      - rpm6:/home/centos/rpmbuild/RPMS
-    build:
-      context: .
-      dockerfile: Dockerfile.ap24
   centos7php7:
     volumes:
       - rpms:/home/centos/rpmbuild/SRPMS
@@ -47,12 +17,5 @@ services:
 volumes:
   rpms:
     name: rpms
-  rpm6:
-    name: rpm6
   rpm7:
     name: rpm7
-
-networks:
-  buildnet:
-    external: true
-    name: buildnet
