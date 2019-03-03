@@ -3,7 +3,7 @@ services:
   centos6php7base:
     build:
       context: .
-      dockerfile: Dockerfile.el6-base
+      dockerfile: Dockerfile.6-base
     image: aursu/php7build:6-base
   centos6php7ap24base:
     build:
