@@ -4,6 +4,7 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
+      BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - run:
