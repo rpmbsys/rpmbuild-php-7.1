@@ -12,6 +12,6 @@ RUN yum -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom install 
         php-pecl-geoip \
         php-pecl-imagick \
         php-pecl-memcached \
-        php-pecl-redis \
+        php-pecl-redis4 \
         php-xml \
     && yum clean all && rm -rf /var/cache/yum
