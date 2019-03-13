@@ -171,12 +171,12 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 3
+%global rpmrel 1
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.26
+Version: 7.1.27
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -1492,6 +1492,9 @@ fi
 %endif
 
 %changelog
+* Wed Mar 13 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.27-1
+- Update to 7.1.27 - http://www.php.net/releases/7_1_27.php
+
 * Mon Mar  4 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.26-3
 - removed user www-data from listen.acl_users for FPM
 
