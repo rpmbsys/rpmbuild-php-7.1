@@ -1,0 +1,6 @@
+version: "3.5"
+services:
+  centos7php7dev:
+    build:
+      context: dev
+    image: aursu/php7build:7-dev
