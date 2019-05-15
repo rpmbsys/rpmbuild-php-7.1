@@ -21,3 +21,11 @@ gpgcheck=0
 repo_gpgcheck=0
 enabled=0
 sslverify=0
+
+[bintray-php73custom]
+name=bintray-php73custom
+baseurl=https://dl.bintray.com/aursu/php73custom/centos/$releasever/
+gpgcheck=0
+repo_gpgcheck=0
+enabled=0
+sslverify=0
