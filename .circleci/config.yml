@@ -53,7 +53,7 @@ jobs:
             docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker push aursu/php7build:6-build
             docker push aursu/php7build:6-build-rel
-  build7:
+  build:
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -118,4 +118,4 @@ workflows:
   php7build:
     jobs:
       - build6
-      - build7
+      - build
