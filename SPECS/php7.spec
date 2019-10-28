@@ -176,7 +176,7 @@
 
 Summary: PHP scripting language for creating dynamic web sites
 Name: %{php_main}
-Version: 7.1.32
+Version: 7.1.33
 Release: %{rpmrel}%{?mytag}%{?aptag}%{?dist}
 
 # All files licensed under PHP version 3.01, except
@@ -1492,6 +1492,9 @@ fi
 %endif
 
 %changelog
+* Mon Oct 28 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.33-1
+- Update to 7.1.32 - http://www.php.net/releases/7_1_33.php
+
 * Wed Sep 11 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.32-1
 - Update to 7.1.32 - http://www.php.net/releases/7_1_32.php
 
