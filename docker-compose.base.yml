@@ -15,3 +15,8 @@ services:
       context: .
       dockerfile: Dockerfile.base
     image: aursu/php7build:7-base
+  centos8php7base:
+    build:
+      context: .
+      dockerfile: Dockerfile.8-base
+    image: aursu/php7build:8-base

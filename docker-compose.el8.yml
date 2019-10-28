@@ -1,0 +1,23 @@
+version: "3.5"
+services:
+  centos8php7:
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.el8
+  centos8php7rel:
+    command: ["-ba", "--with", "relocation"]
+    volumes:
+      - rpms:/home/centos/rpmbuild/SRPMS
+      - rpm8:/home/centos/rpmbuild/RPMS
+    build:
+      context: .
+      dockerfile: Dockerfile.el8
+
+volumes:
+  rpms:
+    name: rpms
+  rpm7:
+    name: rpm8

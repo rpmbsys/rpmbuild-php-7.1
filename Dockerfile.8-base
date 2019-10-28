@@ -1,0 +1,34 @@
+FROM aursu/rpmbuild:8-build
+
+USER root
+RUN yum -y --enablerepo=PowerTools install \
+        bzip2-devel \
+        cyrus-sasl-devel \
+        freetype-devel \
+        gdbm-devel \
+        httpd-devel \
+        libacl-devel \
+        libcurl-devel \
+        libdb-devel \
+        libicu-devel \
+        libjpeg-turbo-devel \
+        libmcrypt-devel \
+        libpng-devel \
+        libtool-ltdl-devel \
+        libwebp-devel \
+        libxml2-devel \
+        libxslt-devel \
+        mysql-devel \
+        nginx-filesystem \
+        openldap-devel \
+        openssl-devel \
+        pcre-devel \
+        postgresql-devel \
+        sendmail \
+        sqlite-devel \
+        systemd-devel \
+        systemtap-sdt-devel \
+        unixODBC-devel \
+        uw-imap-devel \
+        zlib-devel \
+    && yum clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
