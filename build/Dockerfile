@@ -9,4 +9,4 @@ RUN yum -y --enablerepo=custom --enablerepo=bintray-custom install \
         php-devel \
         php-process \
         php-xml \
-    && yum clean all && rm -rf /var/cache/yum
+    && yum clean all && rm -rf /var/cache/yum /var/lib/rpm/__db*
