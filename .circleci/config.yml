@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Build PHP Docker images
           command: |
-            docker-compose -f docker-compose.base.yml build --no-cache --pull
+            docker-compose -f docker-compose.base.yml build --no-cache --pull centos7php7base
             docker-compose build --no-cache
       - run:
           name: Build PHP 7.1 RPM packages
@@ -101,7 +101,7 @@ jobs:
           command: |
             docker-compose -f build/docker-compose.yml build --no-cache --pull
             docker-compose -f run/docker-compose.yml build --no-cache --pull
-            docker-compose -f run/docker-compose.dev.yml build --no-cache
+            docker-compose -f run/docker-compose.dev.yml build --no-cache centos7php7dev
       - run:
           name: Upload PHP Docker images (PHP 7.1)
           command: |
@@ -110,6 +110,64 @@ jobs:
             docker push aursu/php7build:7-build-rel
             docker push aursu/php7build:7-runtime
             docker push aursu/php7build:7-dev
+  build8:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BINTRAY_REPO: php71custom
+      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
+    steps:
+      - checkout
+      - run:
+          name: Git submodules sync
+          command: |
+            git submodule sync
+            git submodule update --init
+      - run:
+          name: Pull images for RPM build docker services
+          command: |
+            docker-compose -f rpmbuild/docker-compose.yml pull
+            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
+            docker-compose -f rpmbuild/docker-compose.refresh.yml pull
+      - run:
+          name: Start docker services for rpmbuild
+          command: docker-compose -f rpmbuild/docker-compose.yml up -d
+          background: true
+          no_output_timeout: 2h
+      - run:
+          name: Build PHP Docker images
+          command: |
+            docker-compose -f docker-compose.base.yml build --no-cache --pull centos8php7base
+            docker-compose -f docker-compose.el8.yml build --no-cache
+      - run:
+          name: Build PHP 7.1 RPM packages
+          command: docker-compose -f docker-compose.el8.yml up
+      - run:
+          name: Upload RPM packages into Bintray
+          command: |
+            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
+              -e BINTRAY_USER=$BINTRAY_USER \
+              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
+              -e BINTRAY_REPO=$BINTRAY_REPO \
+              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
+      - run:
+          name: refresh repositories
+          command: |
+            docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos8refresh
+      - run:
+          name: Build PHP Docker images (PHP 7.1)
+          command: |
+            docker-compose -f build/docker-compose.el8.yml build --no-cache --pull
+            docker-compose -f run/docker-compose.el8.yml build --no-cache --pull
+            docker-compose -f run/docker-compose.dev.yml build --no-cache centos8php7dev
+      - run:
+          name: Upload PHP Docker images (PHP 7.1)
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
+            docker push aursu/php7build:8-build
+            docker push aursu/php7build:8-build-rel
+            docker push aursu/php7build:8-runtime
+            docker push aursu/php7build:8-dev
 
 workflows:
   version: 2
@@ -117,3 +175,4 @@ workflows:
     jobs:
       - build6
       - build
+      - build8

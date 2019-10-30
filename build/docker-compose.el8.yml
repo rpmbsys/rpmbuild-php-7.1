@@ -1,0 +1,26 @@
+version: "3.5"
+services:
+  centos8php7build:
+    networks:
+      - buildnet
+    build:
+      context: .
+      args:
+        centos: 8
+      network: buildnet
+    image: aursu/php7build:8-build
+  centos8php7buildrel:
+    networks:
+      - buildnet
+    build:
+      context: .
+      args:
+        centos: 8
+      dockerfile: Dockerfile.rel
+      network: buildnet
+    image: aursu/php7build:8-build-rel
+
+networks:
+  buildnet:
+    external: true
+    name: buildnet

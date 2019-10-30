@@ -14,7 +14,7 @@ RUN yum -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom install 
         php-pecl-memcached \
         php-pecl-redis4 \
         php-xml \
-    && yum clean all && rm -rf /var/cache/yum /var/lib/rpm/__db*
+    && yum clean all && rm -rf /var/cache/yum /var/cache/dnf /var/lib/rpm/__db*
 
 # php-fpm configuration
 COPY system/etc/php-fpm.conf /etc/php-fpm.conf

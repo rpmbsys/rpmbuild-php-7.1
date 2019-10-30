@@ -1,0 +1,14 @@
+version: "3.5"
+services:
+  centos8php7run:
+    build:
+      context: .
+      args:
+        image: 8-web
+    image: aursu/php7build:8-runtime
+  centos8php7devbase:
+    build:
+      context: .
+      args:
+        image: 8-nodedev
+    image: aursu/php7build:8-devbase
