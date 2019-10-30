@@ -19,5 +19,5 @@ services:
 volumes:
   rpms:
     name: rpms
-  rpm7:
+  rpm8:
     name: rpm8
