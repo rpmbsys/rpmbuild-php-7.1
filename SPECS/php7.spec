@@ -61,6 +61,7 @@
 %if 0%{?rhel} < 7
 %global _rundir     /var/run
 %endif
+%global _missing_build_ids_terminate_build 0
 
 %if %{with_relocation}
 %global program_suffix      7
