@@ -5,8 +5,7 @@ services:
       - buildnet
     build:
       context: .
-      args:
-        centos: 8
+      dockerfile: Dockerfile.el8
       network: buildnet
     image: aursu/php7build:8-build
   centos8php7buildrel:

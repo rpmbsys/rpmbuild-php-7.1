@@ -3,12 +3,12 @@ services:
   centos8php7run:
     build:
       context: .
-      args:
-        image: 8-web
+      dockerfile: Dockerfile.el8
     image: aursu/php7build:8-runtime
   centos8php7devbase:
     build:
       context: .
+      dockerfile: Dockerfile.el8
       args:
         image: 8-nodedev
     image: aursu/php7build:8-devbase

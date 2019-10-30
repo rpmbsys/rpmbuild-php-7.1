@@ -18,11 +18,13 @@ RUN yum -y --enablerepo=PowerTools install \
         libwebp-devel \
         libxml2-devel \
         libxslt-devel \
+        libzip-devel \
         mysql-devel \
         nginx-filesystem \
         openldap-devel \
         openssl-devel \
         pcre-devel \
+        perl \
         postgresql-devel \
         sendmail \
         sqlite-devel \
