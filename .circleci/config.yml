@@ -1,57 +1,5 @@
 version: 2
 jobs:
-  build6:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - checkout
-      - run:
-          name: Git submodules sync
-          command: |
-            git submodule sync
-            git submodule update --init
-      - run:
-          name: Pull images for RPM build docker services
-          command: |
-            docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-            docker-compose -f rpmbuild/docker-compose.refresh.yml pull
-      - run:
-          name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
-          background: true
-          no_output_timeout: 2h
-      - run:
-          name: Build PHP Docker images
-          command: |
-            docker-compose -f docker-compose.base.yml build --no-cache --pull
-            docker-compose -f docker-compose.el6.yml build --no-cache
-      - run:
-          name: Build PHP 7.1 RPM packages
-          command: docker-compose -f docker-compose.el6.yml up
-      - run:
-          name: Upload RPM packages into Bintray
-          command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos6bintray
-      - run:
-          name: refresh repositories
-          command: docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos6refresh
-      - run:
-          name: Build PHP build Docker images (PHP 7.1)
-          command: docker-compose -f build/docker-compose.el6.yml build --no-cache --pull
-      - run:
-          name: Build PHP build Docker images (PHP 7.1)
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:6-build
-            docker push aursu/php7build:6-build-rel
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -173,6 +121,5 @@ workflows:
   version: 2
   php7build:
     jobs:
-      - build6
       - build
       - build8

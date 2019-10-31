@@ -1,5 +1,4 @@
 ARG centos=7
-
 FROM aursu/rpmbuild:${centos}-build
 
 USER root
