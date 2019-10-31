@@ -5,6 +5,8 @@ gpgcheck=0
 repo_gpgcheck=0
 enabled=0
 sslverify=0
+# https://dnf.readthedocs.io/en/latest/modularity.html#hotfix-repositories
+module_hotfixes=true
 
 [bintray-php5custom]
 name=bintray-php5custom
@@ -13,6 +15,8 @@ gpgcheck=0
 repo_gpgcheck=0
 enabled=0
 sslverify=0
+# https://dnf.readthedocs.io/en/latest/modularity.html#hotfix-repositories
+module_hotfixes=true
 
 [bintray-php71custom]
 name=bintray-php71custom
@@ -21,6 +25,8 @@ gpgcheck=0
 repo_gpgcheck=0
 enabled=0
 sslverify=0
+# https://dnf.readthedocs.io/en/latest/modularity.html#hotfix-repositories
+module_hotfixes=true
 
 [bintray-php73custom]
 name=bintray-php73custom
@@ -29,3 +35,5 @@ gpgcheck=0
 repo_gpgcheck=0
 enabled=0
 sslverify=0
+# https://dnf.readthedocs.io/en/latest/modularity.html#hotfix-repositories
+module_hotfixes=true
