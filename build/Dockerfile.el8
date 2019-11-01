@@ -2,12 +2,12 @@ ARG centos=8
 FROM aursu/rpmbuild:${centos}-build
 
 USER root
-RUN yum -y install libzip \
-    && yum -y module disable php \
-    && yum -y --enablerepo=custom --enablerepo=bintray-custom install \
+RUN dnf -y install libzip \
+    && dnf -y module disable php \
+    && dnf -y --enablerepo=custom --enablerepo=bintray-custom install \
         php-cli \
         php-common \
         php-devel \
         php-process \
         php-xml \
-    && yum clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
+    && dnf clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*

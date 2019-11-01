@@ -1,7 +1,7 @@
 FROM aursu/rpmbuild:8-build
 
 USER root
-RUN yum -y --enablerepo=PowerTools install \
+RUN dnf -y install \
         bzip2-devel \
         cyrus-sasl-devel \
         freetype-devel \
@@ -33,4 +33,4 @@ RUN yum -y --enablerepo=PowerTools install \
         unixODBC-devel \
         uw-imap-devel \
         zlib-devel \
-    && yum clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
+    && dnf clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
