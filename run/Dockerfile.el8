@@ -3,9 +3,9 @@ FROM aursu/centos:${image}
 
 COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
 
-RUN yum -y install libzip \
-    && yum -y module disable php \
-    && yum -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom install \
+RUN dnf -y install libzip \
+    && dnf -y module disable php \
+    && dnf -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom --skip-broken install \
         php-bcmath \
         php-cli \
         php-fpm \
@@ -16,7 +16,7 @@ RUN yum -y install libzip \
         php-pecl-memcached \
         php-pecl-redis4 \
         php-xml \
-    && yum clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
+    && dnf clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
 
 # php-fpm configuration
 COPY system/etc/php-fpm.conf /etc/php-fpm.conf

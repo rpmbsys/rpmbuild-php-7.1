@@ -3,7 +3,7 @@ FROM aursu/centos:${image}
 
 COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
 
-RUN yum -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom install \
+RUN yum -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom --skip-broken install \
         php-bcmath \
         php-cli \
         php-fpm \
