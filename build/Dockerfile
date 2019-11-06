@@ -2,7 +2,10 @@ ARG centos=7
 FROM aursu/rpmbuild:${centos}-build
 
 USER root
-RUN yum -y --enablerepo=custom --enablerepo=bintray-custom install \
+
+COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
+
+RUN yum -y --enablerepo=custom --enablerepo=bintray-custom --enablerepo=bintray-php71custom install \
         php-cli \
         php-common \
         php-devel \
