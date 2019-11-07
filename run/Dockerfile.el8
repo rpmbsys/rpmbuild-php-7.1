@@ -5,7 +5,7 @@ COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.
 
 RUN dnf -y install libzip \
     && dnf -y module disable php \
-    && dnf -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom --skip-broken install \
+    && dnf -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom --enablerepo=epel-playground --skip-broken install \
         php-bcmath \
         php-cli \
         php-fpm \
