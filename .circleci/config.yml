@@ -42,8 +42,7 @@ jobs:
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
       - run:
           name: refresh repositories
-          command: |
-            docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos7refresh
+          command: docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos7refresh
       - run:
           name: Build PHP Docker images (PHP 7.1)
           command: docker-compose -f build/docker-compose.yml build --no-cache --pull
@@ -106,8 +105,7 @@ jobs:
               -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos8bintray
       - run:
           name: refresh repositories
-          command: |
-            docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos8refresh
+          command: docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos8refresh
       - run:
           name: Build PHP Docker images (PHP 7.1)
           command: docker-compose -f build/docker-compose.el8.yml build --no-cache --pull
