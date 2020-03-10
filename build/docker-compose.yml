@@ -6,7 +6,9 @@ services:
     build:
       context: .
       network: buildnet
-    image: aursu/php7build:7-build
+      args:
+        centos: $OS7
+    image: "aursu/php7build:${OS7TAG}-build"
   centos7php7buildrel:
     networks:
       - buildnet
@@ -14,7 +16,9 @@ services:
       context: .
       dockerfile: Dockerfile.rel
       network: buildnet
-    image: aursu/php7build:7-build-rel
+      args:
+        centos: $OS7
+    image: "aursu/php7build:${OS7TAG}-build-rel"
 
 networks:
   buildnet:

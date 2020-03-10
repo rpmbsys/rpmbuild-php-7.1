@@ -1,5 +1,6 @@
-ARG image=8-web
-FROM aursu/centos:${image}
+ARG centos=8.1.1911
+ARG image=web
+FROM aursu/centos:${centos}-${image}
 
 COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
 

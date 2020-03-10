@@ -1,0 +1,124 @@
+language: minimal
+
+services:
+  - docker
+
+addons:
+  apt:
+    packages:
+      - docker-ce
+
+env:
+  global:
+    - PACKAGE_VCS_URL=https://github.com/aursu/rpmbuild-php-7.1
+    - BINTRAY_REPO=php71custom
+    - OS7=7.7.1908
+    - OS8=8.1.1911
+    - OS7TAG=7.7.1908
+    - OS8TAG=8.1.1911
+  jobs:
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BASE=centos7php7base BUILD=centos7php7    UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.yml       BASE=centos7php7base BUILD=centos7php7rel UPLOADER=centos7bintray
+    - BUILD_COMPOSE_FILE=docker-compose.el8.yml   BASE=centos8php7base BUILD=centos8php7    UPLOADER=centos8bintray
+    - BUILD_COMPOSE_FILE=docker-compose.el8.yml   BASE=centos8php7base BUILD=centos8php7rel UPLOADER=centos8bintray
+
+install:
+  - docker-compose -f docker-compose.base.yml build --no-cache --pull ${BASE}
+
+before_script:
+  - docker-compose -f ${BUILD_COMPOSE_FILE} build --no-cache ${BUILD}
+
+script:
+  - docker-compose -f ${BUILD_COMPOSE_FILE} up ${BUILD}
+
+before_deploy:
+  - docker-compose -f rpmbuild/docker-compose.bintray.yml pull ${UPLOADER}
+
+deploy:
+  provider: script
+  script: docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm -e BINTRAY_USER=$BINTRAY_USER -e BINTRAY_API_KEY=$BINTRAY_API_KEY -e BINTRAY_REPO=$BINTRAY_REPO -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL ${UPLOADER}
+
+jobs:
+  include:
+    - stage: build
+      before_install:
+        - docker-compose -f rpmbuild/docker-compose.yml pull centos7repo centos8repo webrepo
+      install:
+        - docker-compose -f rpmbuild/docker-compose.yml up -d centos7repo centos8repo webrepo
+      before_script: skip
+      script:
+        - docker-compose -f build/docker-compose.yml build --no-cache --pull
+      after_success:
+        - OS7TAG=7 docker-compose -f build/docker-compose.yml build
+      before_deploy:
+        - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      deploy:
+        - provider: script
+          script: docker-compose -f build/docker-compose.yml push
+        - provider: script
+          script: OS7TAG=7 docker-compose -f build/docker-compose.yml push
+    - stage: build
+      before_install:
+        - docker-compose -f rpmbuild/docker-compose.yml pull  centos7repo centos8repo webrepo
+      install:
+        - docker-compose -f rpmbuild/docker-compose.yml up -d  centos7repo centos8repo webrepo
+      before_script: skip
+      script:
+        - docker-compose -f build/docker-compose.el8.yml build --no-cache --pull
+      after_success:
+        - OS8TAG=8 docker-compose -f build/docker-compose.el8.yml build
+      before_deploy:
+        - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      deploy:
+        - provider: script
+          script: docker-compose -f build/docker-compose.el8.yml push
+        - provider: script
+          script: OS8TAG=8 docker-compose -f build/docker-compose.el8.yml push
+    - stage: runtime
+      install: skip
+      before_script: skip
+      script:
+        - docker-compose -f run/docker-compose.yml build --no-cache --pull
+      after_success:
+        - OS7TAG=7 docker-compose -f run/docker-compose.yml build
+      before_deploy:
+        - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      deploy:
+        - provider: script
+          script: docker-compose -f run/docker-compose.yml push
+        - provider: script
+          script: OS7TAG=7 docker-compose -f run/docker-compose.yml push
+    - stage: runtime
+      install: skip
+      before_script: skip
+      script:
+        - docker-compose -f run/docker-compose.el8.yml build --no-cache --pull
+      after_success:
+        - OS8TAG=8 docker-compose -f run/docker-compose.el8.yml build
+      before_deploy:
+        - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      deploy:
+        - provider: script
+          script: docker-compose -f run/docker-compose.el8.yml push
+        - provider: script
+          script: OS8TAG=8 docker-compose -f run/docker-compose.el8.yml push
+    - stage: dev
+      install: skip
+      before_script: skip
+      script:
+        - docker-compose -f run/docker-compose.dev.yml build --no-cache --pull
+      after_success:
+        - OS7TAG=7 OS8TAG=8 docker-compose -f run/docker-compose.dev.yml build
+      before_deploy:
+        - docker login -u $DOCKER_USER -p $DOCKER_PASS
+      deploy:
+        - provider: script
+          script: docker-compose -f run/docker-compose.dev.yml push
+        - provider: script
+          script: OS7TAG=7 OS8TAG=8 docker-compose -f run/docker-compose.dev.yml push
+
+stages:
+  - test
+  - build
+  - runtime
+  - dev

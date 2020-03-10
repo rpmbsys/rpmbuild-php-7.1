@@ -1,5 +1,10 @@
-ARG image=7-web
-FROM aursu/centos:${image}
+ARG centos=7.7.1908
+ARG image=web
+FROM aursu/centos:${centos}-${image}
+
+RUN yum -y install \
+        libc-client \
+    && yum clean all && rm -rf /var/cache/yum /var/lib/rpm/__db*
 
 COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
 

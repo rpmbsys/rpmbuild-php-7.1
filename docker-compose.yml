@@ -6,6 +6,8 @@ services:
       - rpm7:/home/centos/rpmbuild/RPMS
     build:
       context: .
+      args:
+        centos: $OS7
   centos7php7rel:
     command: ["-ba", "--with", "relocation"]
     volumes:
@@ -13,6 +15,8 @@ services:
       - rpm7:/home/centos/rpmbuild/RPMS
     build:
       context: .
+      args:
+        centos: $OS7
 
 volumes:
   rpms:

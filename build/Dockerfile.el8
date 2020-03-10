@@ -1,7 +1,11 @@
-ARG centos=8
+ARG centos=8.1.1911
 FROM aursu/rpmbuild:${centos}-build
 
 USER root
+
+RUN dnf -y install \
+        libc-client \
+    && dnf clean all && rm -rf /var/cache/dnf /var/lib/rpm/__db*
 
 COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.repo
 

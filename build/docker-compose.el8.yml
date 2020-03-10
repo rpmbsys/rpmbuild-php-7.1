@@ -7,17 +7,19 @@ services:
       context: .
       dockerfile: Dockerfile.el8
       network: buildnet
-    image: aursu/php7build:8-build
+      args:
+        centos: $OS8
+    image: "aursu/php7build:${OS8TAG}-build"
   centos8php7buildrel:
     networks:
       - buildnet
     build:
       context: .
-      args:
-        centos: 8
       dockerfile: Dockerfile.rel
       network: buildnet
-    image: aursu/php7build:8-build-rel
+      args:
+        centos: $OS8
+    image: "aursu/php7build:${OS8TAG}-build-rel"
 
 networks:
   buildnet:

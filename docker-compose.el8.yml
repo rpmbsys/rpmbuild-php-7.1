@@ -7,6 +7,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el8
+      args:
+        centos: $OS8
   centos8php7rel:
     command: ["-ba", "--with", "relocation"]
     volumes:
@@ -15,6 +17,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el8
+      args:
+        centos: $OS8
 
 volumes:
   rpms:

@@ -4,11 +4,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.el8
-    image: aursu/php7build:8-runtime
+      args:
+        centos: $OS8
+    image: "aursu/php7build:${OS8TAG}-runtime"
   centos8php7devbase:
     build:
       context: .
       dockerfile: Dockerfile.el8
       args:
-        image: 8-nodedev
-    image: aursu/php7build:8-devbase
+        image: nodedev
+        centos: $OS8
+    image: "aursu/php7build:${OS8TAG}-devbase"
