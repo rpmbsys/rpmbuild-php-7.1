@@ -1,26 +1,15 @@
 version: "3.5"
 services:
   centos7php7build:
-    networks:
-      - buildnet
     build:
       context: .
-      network: buildnet
       args:
         centos: $OS7
     image: "aursu/php7build:${OS7TAG}-build"
   centos7php7buildrel:
-    networks:
-      - buildnet
     build:
       context: .
       dockerfile: Dockerfile.rel
-      network: buildnet
       args:
         centos: $OS7
     image: "aursu/php7build:${OS7TAG}-build-rel"
-
-networks:
-  buildnet:
-    external: true
-    name: buildnet

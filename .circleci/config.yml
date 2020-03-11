@@ -68,7 +68,6 @@ orbs:
                   -e BINTRAY_REPO=$BINTRAY_REPO \
                   -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
 
-
 jobs:
   centos7php7:
     machine:

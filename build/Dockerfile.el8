@@ -11,7 +11,7 @@ COPY system/etc/yum.repos.d/bintray-custom.repo /etc/yum.repos.d/bintray-custom.
 
 RUN dnf -y install libzip \
     && dnf -y module disable php \
-    && dnf -y --enablerepo=custom --enablerepo=bintray-custom --enablerepo=bintray-php71custom install \
+    && dnf -y --enablerepo=bintray-custom --enablerepo=bintray-php71custom install \
         php-cli \
         php-common \
         php-devel \
