@@ -98,7 +98,7 @@ orbs:
                       OS6TAG: 6
                       OS7TAG: 7
                       OS8TAG: 8
-                    command: docker-compose -f << parameters.file >> build --no-cache --pull << parameters.service >>
+                    command: docker-compose -f << parameters.file >> build << parameters.service >>
           - run:
               name: Login into Docker Hub
               command: docker login -u $DOCKER_USER -p $DOCKER_PASS
