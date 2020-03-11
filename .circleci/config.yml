@@ -8,9 +8,36 @@ orbs:
         steps:
           - checkout
           - run:
+              name: Git submodules sync and update
               command: |
                 git submodule sync
                 git submodule update --init
+  docker-rpmbuild:
+    commands:
+      base:
+        description: Create base image for rpmbuild
+        parameters:
+          file:
+            type: string
+            default: "docker-compose.base.yml"
+          service:
+            type: string
+        steps:
+          - run:
+              name: Create base image using << parameters.service >>
+              command: docker-compose -f << parameters.file >> build --no-cache --pull << parameters.service >>
+      build:
+        description: Create build image for rpmbuild
+        parameters:
+          file:
+            type: string
+            default: "docker-compose.yml"
+          service:
+            type: string
+        steps:
+          - run:
+              name: Create base image using << parameters.service >>
+              command: docker-compose -f << parameters.file >> build --no-cache << parameters.service >>
 
 jobs:
   build:
@@ -32,11 +59,12 @@ jobs:
           command: docker-compose -f rpmbuild/docker-compose.yml up -d
           background: true
           no_output_timeout: 2h
-      - run:
-          name: Build PHP Docker images
-          command: |
-            docker-compose -f docker-compose.base.yml build --no-cache --pull centos7php7base
-            docker-compose build --no-cache
+      - docker-rpmbuild/base:
+        service: centos7php7base
+      - docker-rpmbuild/build:
+        service: centos7php7
+      - docker-rpmbuild/build:
+        service: centos7php7rel
       - run:
           name: Build PHP 7.1 RPM packages
           command: docker-compose up
