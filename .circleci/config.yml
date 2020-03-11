@@ -61,13 +61,7 @@ orbs:
             command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull << parameters.uploader >>
           - run:
               name: Upload RPM packages into BinTray using uploader << parameters.uploader >>
-              command: |
-                docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-                  -e BINTRAY_USER=$BINTRAY_USER \
-                  -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-                  -e BINTRAY_REPO=$BINTRAY_REPO \
-                  -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
-
+              command: docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm -e BINTRAY_USER=$BINTRAY_USER -e BINTRAY_API_KEY=$BINTRAY_API_KEY -e BINTRAY_REPO=$BINTRAY_REPO -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
 
 jobs:
   centos7php7:
