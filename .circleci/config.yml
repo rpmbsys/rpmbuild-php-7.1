@@ -77,7 +77,7 @@ orbs:
                   -e BINTRAY_REPO=$BINTRAY_REPO \
                   -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
       image:
-        description: Build Docker image for App development
+        description: Build Docker image
         parameters:
           file:
             type: string
@@ -88,12 +88,13 @@ orbs:
             default: true
         steps:
           - run:
-              name: Build docker image for App development using << parameters.service >>
+              name: Build docker image using << parameters.service >>
               command: docker-compose -f << parameters.file >> build --no-cache --pull << parameters.service >>
           - when:
               condition: << parameters.shorttag >>
               steps:
                 - run:
+                    name: Build docker image using << parameters.service >> with short OS tags
                     environment:
                       OS6TAG: 6
                       OS7TAG: 7
@@ -109,6 +110,7 @@ orbs:
               condition: << parameters.shorttag >>
               steps:
                 - run:
+                    name: Build docker image using << parameters.service >> with short OS tags
                     environment:
                       OS6TAG: 6
                       OS7TAG: 7
