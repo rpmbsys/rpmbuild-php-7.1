@@ -36,10 +36,72 @@ orbs:
             type: string
         steps:
           - run:
-              name: Create base image using << parameters.service >>
+              name: Create build image using << parameters.service >>
               command: docker-compose -f << parameters.file >> build --no-cache << parameters.service >>
+      rpm:
+        description: Create rpm packages with rpmbuild
+        parameters:
+          file:
+            type: string
+            default: "docker-compose.yml"
+          service:
+            type: string
+        steps:
+          - run:
+              name: Build RPM packages using << parameters.service >>
+              command: docker-compose -f << parameters.file >> up << parameters.service >>
+      bintray:
+        description: Upload RPM packages into BinTray
+        parameters:
+          uploader:
+            type: string
+        steps:
+          - run:
+            name: Get Docker image for uploader << parameters.uploader >>
+            command: docker-compose -f rpmbuild/docker-compose.bintray.yml pull << parameters.uploader >>
+          - run:
+              name: Upload RPM packages into BinTray using uploader << parameters.uploader >>
+              command: |
+                docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
+                  -e BINTRAY_USER=$BINTRAY_USER \
+                  -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
+                  -e BINTRAY_REPO=$BINTRAY_REPO \
+                  -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
+
 
 jobs:
+  centos7php7:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BINTRAY_REPO: php71custom
+      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
+    steps:
+      - git/submodules
+      - docker-rpmbuild/base:
+          service: centos7php7base
+      - docker-rpmbuild/build:
+          service: centos7php7
+      - docker-rpmbuild/rpm:
+          service: centos7php7
+      - docker-rpmbuild/bintray:
+          uploader: centos7bintray
+  centos7php7rel:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      BINTRAY_REPO: php71custom
+      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
+    steps:
+      - git/submodules
+      - docker-rpmbuild/base:
+          service: centos7php7base
+      - docker-rpmbuild/build:
+          service: centos7php7rel
+      - docker-rpmbuild/rpm:
+          service: centos7php7rel
+      - docker-rpmbuild/bintray:
+          uploader: centos7bintray
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -48,37 +110,6 @@ jobs:
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
       - git/submodules
-      - run:
-          name: Pull images for RPM build docker services
-          command: |
-            docker-compose -f rpmbuild/docker-compose.yml pull
-            docker-compose -f rpmbuild/docker-compose.bintray.yml pull
-            docker-compose -f rpmbuild/docker-compose.refresh.yml pull
-      - run:
-          name: Start docker services for rpmbuild
-          command: docker-compose -f rpmbuild/docker-compose.yml up -d
-          background: true
-          no_output_timeout: 2h
-      - docker-rpmbuild/base:
-          service: centos7php7base
-      - docker-rpmbuild/build:
-          service: centos7php7
-      - docker-rpmbuild/build:
-          service: centos7php7rel
-      - run:
-          name: Build PHP 7.1 RPM packages
-          command: docker-compose up
-      - run:
-          name: Upload RPM packages into Bintray
-          command: |
-            docker-compose -f rpmbuild/docker-compose.bintray.yml run --rm \
-              -e BINTRAY_USER=$BINTRAY_USER \
-              -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
-              -e BINTRAY_REPO=$BINTRAY_REPO \
-              -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL centos7bintray
-      - run:
-          name: refresh repositories
-          command: docker-compose -f rpmbuild/docker-compose.refresh.yml run --rm centos7refresh
       - run:
           name: Build PHP Docker images (PHP 7.1)
           command: docker-compose -f build/docker-compose.yml build --no-cache --pull
@@ -167,5 +198,10 @@ workflows:
   version: 2
   php7build:
     jobs:
-      - build
+      - centos7php7
+      - centos7php7rel
+      - build:
+          requires:
+            - centos7php7
+            - centos7php7rel
       - build8
