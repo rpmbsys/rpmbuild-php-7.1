@@ -27,7 +27,7 @@ RUN dnf -y install \
         pcre-devel \
         perl \
         postgresql-devel \
-        sendmail \
+        postfix \
         sqlite-devel \
         systemd-devel \
         systemtap-sdt-devel \

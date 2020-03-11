@@ -977,7 +977,7 @@ if test $? != 0; then
   exit 1
 fi
 
-make %{?_smp_mflags}
+make %{?_smp_mflags} --quiet
 }
 
 # Build /usr/bin/php-cgi with the CGI SAPI, and most shared extensions
