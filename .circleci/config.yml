@@ -79,7 +79,7 @@ orbs:
                   -e BINTRAY_REPO=$BINTRAY_REPO \
                   -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
     jobs:
-      build:
+      rpmbuild:
         parameters:
           base_file:
             type: string
@@ -169,23 +169,23 @@ jobs:
 workflows:
   php7build:
     jobs:
-      - docker-rpmbuild/build:
+      - docker-rpmbuild/rpmbuild:
           name: centos7php7
           base_service: centos7php7base
           build_service: centos7php7
           bintray_uploader: centos7bintray
-      - docker-rpmbuild/build:
+      - docker-rpmbuild/rpmbuild:
           name: centos7php7rel
           base_service: centos7php7base
           build_service: centos7php7rel
           bintray_uploader: centos7bintray
-      - docker-rpmbuild/build:
+      - docker-rpmbuild/rpmbuild:
           name: centos8php7
           base_service: centos8php7base
           build_file: docker-compose.el8.yml
           build_service: centos8php7
           bintray_uploader: centos8bintray
-      - docker-rpmbuild/build:
+      - docker-rpmbuild/rpmbuild:
           name: centos8php7rel
           base_service: centos8php7base
           build_file: docker-compose.el8.yml
