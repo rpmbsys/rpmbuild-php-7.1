@@ -10,6 +10,5 @@ services:
     build:
       context: dev
       args:
-        image: devbase
         centos: $OS8
     image: "aursu/php7build:${OS8TAG}-dev"

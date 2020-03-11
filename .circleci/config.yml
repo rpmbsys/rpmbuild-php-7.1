@@ -76,6 +76,45 @@ orbs:
                   -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
                   -e BINTRAY_REPO=$BINTRAY_REPO \
                   -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
+      image:
+        description: Build Docker image for App development
+        parameters:
+          file:
+            type: string
+          service:
+            type: string
+          shorttag:
+            type: boolean
+            default: true
+        steps:
+          - run:
+              name: Build docker image for App development using << parameters.service >>
+              command: docker-compose -f << parameters.file >> build --no-cache --pull << parameters.service >>
+          - when:
+              condition: << parameters.shorttag >>
+              steps:
+                - run:
+                    environment:
+                      OS6TAG: 6
+                      OS7TAG: 7
+                      OS8TAG: 8
+                    command: docker-compose -f << parameters.file >> build --no-cache --pull << parameters.service >>
+          - run:
+              name: Login into Docker Hub
+              command: docker login -u $DOCKER_USER -p $DOCKER_PASS
+          - run:
+              name: Push image into Docker Hub
+              command: docker-compose -f << parameters.file >> push << parameters.service >>
+          - when:
+              condition: << parameters.shorttag >>
+              steps:
+                - run:
+                    environment:
+                      OS6TAG: 6
+                      OS7TAG: 7
+                      OS8TAG: 8
+                    command: docker-compose -f << parameters.file >> push << parameters.service >>
+
     jobs:
       rpmbuild:
         parameters:
@@ -105,64 +144,19 @@ orbs:
               service: << parameters.build_service >>
           - bintray:
               uploader: << parameters.bintray_uploader >>
-
-jobs:
-  build:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - docker-rpmbuild/submodules
-      - run:
-          name: Build PHP Docker images (PHP 7.1)
-          command: docker-compose -f build/docker-compose.yml build --no-cache --pull
-      - run:
-          name: Upload PHP Docker images (PHP 7.1)
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:7-build
-            docker push aursu/php7build:7-build-rel
-      - run:
-          name: Build PHP Docker runtime images (PHP 7.1)
-          command: |
-            docker-compose -f run/docker-compose.yml build --no-cache --pull
-            docker-compose -f run/docker-compose.dev.yml build --no-cache centos7php7dev
-      - run:
-          name: Upload PHP Docker runtime images (PHP 7.1)
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:7-runtime
-            docker push aursu/php7build:7-dev
-  build8:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - docker-rpmbuild/submodules
-      - run:
-          name: Build PHP Docker images (PHP 7.1)
-          command: docker-compose -f build/docker-compose.el8.yml build --no-cache --pull
-      - run:
-          name: Upload PHP Docker images (PHP 7.1)
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:8-build
-            docker push aursu/php7build:8-build-rel
-      - run:
-          name: Build PHP Docker runtime images (PHP 7.1)
-          command: |
-            docker-compose -f run/docker-compose.el8.yml build --no-cache --pull
-            docker-compose -f run/docker-compose.dev.yml build --no-cache centos8php7dev
-      - run:
-          name: Upload PHP Docker images (PHP 7.1)
-          command: |
-            docker login -u $DOCKER_USER -p $DOCKER_PASS
-            docker push aursu/php7build:8-runtime
-            docker push aursu/php7build:8-dev
+      image:
+        parameters:
+          compose_file:
+            type: string
+            default: "build/docker-compose.yml"
+          build_service:
+            type: string
+        executor: centos
+        steps:
+          - submodules
+          - image:
+              file: << parameters.compose_file >>
+              service: << parameters.build_service >>
 
 workflows:
   php7build:
@@ -189,11 +183,61 @@ workflows:
           build_file: docker-compose.el8.yml
           build_service: centos8php7rel
           bintray_uploader: centos8bintray
-      - build:
+      - docker-rpmbuild/image:
+          name: centos7php7build
+          build_service: centos7php7build
           requires:
             - centos7php7
+      - docker-rpmbuild/image:
+          name: centos7php7buildrel
+          build_service: centos7php7buildrel
+          requires:
             - centos7php7rel
-      - build8:
+      - docker-rpmbuild/image:
+          name: centos8php7build
+          compose_file: build/docker-compose.el8.yml
+          build_service: centos8php7build
           requires:
             - centos8php7
+      - docker-rpmbuild/image:
+          name: centos8php7buildrel
+          compose_file: build/docker-compose.el8.yml
+          build_service: centos8php7buildrel
+          requires:
             - centos8php7rel
+      - docker-rpmbuild/image:
+          name: centos7php7run
+          compose_file: run/docker-compose.yml
+          build_service: centos7php7run
+          requires:
+            - centos7php7
+      - docker-rpmbuild/image:
+          name: centos7php7devbase
+          compose_file: run/docker-compose.yml
+          build_service: centos7php7devbase
+          requires:
+            - centos7php7
+      - docker-rpmbuild/image:
+          name: centos8php7run
+          compose_file: run/docker-compose.el8.yml
+          build_service: centos8php7run
+          requires:
+            - centos8php7
+      - docker-rpmbuild/image:
+          name: centos8php7devbase
+          compose_file: run/docker-compose.el8.yml
+          build_service: centos8php7devbase
+          requires:
+            - centos8php7
+      - docker-rpmbuild/image:
+          name: centos7php7dev
+          compose_file: run/docker-compose.dev.yml
+          build_service: centos7php7dev
+          requires:
+            - centos7php7devbase
+      - docker-rpmbuild/image:
+          name: centos8php7dev
+          compose_file: run/docker-compose.dev.yml
+          build_service: centos8php7dev
+          requires:
+            - centos8php7devbase
