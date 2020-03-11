@@ -1,4 +1,17 @@
-version: 2
+version: 2.1
+
+orbs:
+  git:
+    commands:
+      submodules:
+        description: Git submodules sync
+        steps:
+          - checkout
+          - run:
+              command: |
+                git submodule sync
+                git submodule update --init
+
 jobs:
   build:
     machine:
@@ -7,12 +20,7 @@ jobs:
       BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
-      - checkout
-      - run:
-          name: Git submodules sync
-          command: |
-            git submodule sync
-            git submodule update --init
+      - git/submodules
       - run:
           name: Pull images for RPM build docker services
           command: |
