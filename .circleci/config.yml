@@ -60,11 +60,11 @@ jobs:
           background: true
           no_output_timeout: 2h
       - docker-rpmbuild/base:
-        service: centos7php7base
+          service: centos7php7base
       - docker-rpmbuild/build:
-        service: centos7php7
+          service: centos7php7
       - docker-rpmbuild/build:
-        service: centos7php7rel
+          service: centos7php7rel
       - run:
           name: Build PHP 7.1 RPM packages
           command: docker-compose up
