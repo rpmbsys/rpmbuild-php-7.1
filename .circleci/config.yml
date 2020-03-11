@@ -13,6 +13,8 @@ orbs:
                 git submodule sync
                 git submodule update --init
   docker-rpmbuild:
+    orbs:
+      git: git
     executors:
       centos:
         machine:
