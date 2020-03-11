@@ -1,20 +1,7 @@
 version: 2.1
 
 orbs:
-  git:
-    commands:
-      submodules:
-        description: Git submodules sync
-        steps:
-          - checkout
-          - run:
-              name: Git submodules sync and update
-              command: |
-                git submodule sync
-                git submodule update --init
   docker-rpmbuild:
-    orbs:
-      git: git
     executors:
       centos:
         machine:
@@ -27,6 +14,15 @@ orbs:
           OS7TAG: 7.7.1908
           OS8TAG: 8.1.1911
     commands:
+      submodules:
+        description: Git submodules sync
+        steps:
+          - checkout
+          - run:
+              name: Git submodules sync and update
+              command: |
+                git submodule sync
+                git submodule update --init
       base:
         description: Create base image for rpmbuild
         parameters:
@@ -97,7 +93,7 @@ orbs:
             type: string
         executor: centos
         steps:
-          - git/submodules
+          - submodules
           - base:
               file: << parameters.base_file >>
               service: << parameters.base_service >>
@@ -118,7 +114,7 @@ jobs:
       BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
-      - git/submodules
+      - docker-rpmbuild/submodules
       - run:
           name: Build PHP Docker images (PHP 7.1)
           command: docker-compose -f build/docker-compose.yml build --no-cache --pull
@@ -146,7 +142,7 @@ jobs:
       BINTRAY_REPO: php71custom
       PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
     steps:
-      - git/submodules
+      - docker-rpmbuild/submodules
       - run:
           name: Build PHP Docker images (PHP 7.1)
           command: docker-compose -f build/docker-compose.el8.yml build --no-cache --pull
