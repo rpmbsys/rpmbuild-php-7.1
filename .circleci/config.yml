@@ -13,6 +13,17 @@ orbs:
                 git submodule sync
                 git submodule update --init
   docker-rpmbuild:
+    executors:
+      centos:
+        machine:
+          image: ubuntu-1604:201903-01
+        environment:
+          OS6: 6.10
+          OS7: 7.7.1908
+          OS8: 8.1.1911
+          OS6TAG: 6.10
+          OS7TAG: 7.7.1908
+          OS8TAG: 8.1.1911
     commands:
       base:
         description: Create base image for rpmbuild
@@ -67,76 +78,37 @@ orbs:
                   -e BINTRAY_API_KEY=$BINTRAY_API_KEY \
                   -e BINTRAY_REPO=$BINTRAY_REPO \
                   -e PACKAGE_VCS_URL=$PACKAGE_VCS_URL << parameters.uploader >>
+    jobs:
+      build:
+        parameters:
+          base_file:
+            type: string
+            default: "docker-compose.base.yml"
+          build_file:
+            type: string
+            default: "docker-compose.yml"
+          base_service:
+            type: string
+          build_service:
+            type: string
+          bintray_uploader:
+            type: string
+        executor: centos
+        steps:
+          - git/submodules
+          - base:
+              file: << parameters.base_file >>
+              service: << parameters.base_service >>
+          - build:
+              file: << parameters.build_file >>
+              service: << parameters.build_service >>
+          - rpm:
+              file: << parameters.build_file >>
+              service: << parameters.build_service >>
+          - bintray:
+              uploader: << parameters.bintray_uploader >>
 
 jobs:
-  centos7php7:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - git/submodules
-      - docker-rpmbuild/base:
-          service: centos7php7base
-      - docker-rpmbuild/build:
-          service: centos7php7
-      - docker-rpmbuild/rpm:
-          service: centos7php7
-      - docker-rpmbuild/bintray:
-          uploader: centos7bintray
-  centos7php7rel:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - git/submodules
-      - docker-rpmbuild/base:
-          service: centos7php7base
-      - docker-rpmbuild/build:
-          service: centos7php7rel
-      - docker-rpmbuild/rpm:
-          service: centos7php7rel
-      - docker-rpmbuild/bintray:
-          uploader: centos7bintray
-  centos8php7:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - git/submodules
-      - docker-rpmbuild/base:
-          service: centos8php7base
-      - docker-rpmbuild/build:
-          file: docker-compose.el8.yml
-          service: centos8php7
-      - docker-rpmbuild/rpm:
-          file: docker-compose.el8.yml
-          service: centos8php7
-      - docker-rpmbuild/bintray:
-          uploader: centos8bintray
-  centos8php7rel:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      BINTRAY_REPO: php71custom
-      PACKAGE_VCS_URL: https://github.com/aursu/rpmbuild-php-7.1
-    steps:
-      - git/submodules
-      - docker-rpmbuild/base:
-          service: centos8php7base
-      - docker-rpmbuild/build:
-          file: docker-compose.el8.yml
-          service: centos8php7rel
-      - docker-rpmbuild/rpm:
-          file: docker-compose.el8.yml
-          service: centos8php7rel
-      - docker-rpmbuild/bintray:
-          uploader: centos8bintray
   build:
     machine:
       image: ubuntu-1604:201903-01
@@ -195,13 +167,30 @@ jobs:
             docker push aursu/php7build:8-dev
 
 workflows:
-  version: 2
   php7build:
     jobs:
-      - centos7php7
-      - centos7php7rel
-      - centos8php7
-      - centos8php7rel
+      - docker-rpmbuild/build:
+          name: centos7php7
+          base_service: centos7php7base
+          build_service: centos7php7
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos7php7rel
+          base_service: centos7php7base
+          build_service: centos7php7rel
+          bintray_uploader: centos7bintray
+      - docker-rpmbuild/build:
+          name: centos8php7
+          base_service: centos8php7base
+          build_file: docker-compose.el8.yml
+          build_service: centos8php7
+          bintray_uploader: centos8bintray
+      - docker-rpmbuild/build:
+          name: centos8php7rel
+          base_service: centos8php7base
+          build_file: docker-compose.el8.yml
+          build_service: centos8php7rel
+          bintray_uploader: centos8bintray
       - build:
           requires:
             - centos7php7
