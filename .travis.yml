@@ -12,9 +12,9 @@ env:
   global:
     - PACKAGE_VCS_URL=https://github.com/aursu/rpmbuild-php-7.1
     - BINTRAY_REPO=php71custom
-    - OS7=7.7.1908
+    - OS7=7.8.2003
     - OS8=8.1.1911
-    - OS7TAG=7.7.1908
+    - OS7TAG=7.8.2003
     - OS8TAG=8.1.1911
   jobs:
     - BUILD_COMPOSE_FILE=docker-compose.yml       BASE=centos7php7base BUILD=centos7php7    UPLOADER=centos7bintray

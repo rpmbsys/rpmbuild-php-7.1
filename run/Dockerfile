@@ -1,4 +1,4 @@
-ARG centos=7.7.1908
+ARG centos=7.8.2003
 ARG image=web
 FROM aursu/centos:${centos}-${image}
 
