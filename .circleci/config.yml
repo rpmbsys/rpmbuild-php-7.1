@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  docker-rpmbuild: aursu/rpmbuild@1.0.2
+  docker-rpmbuild: aursu/rpmbuild@1.1.1
 
 workflows:
   php7build:
