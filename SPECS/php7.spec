@@ -172,7 +172,7 @@
 %global with_libzip 0
 %endif
 
-%global rpmrel 1
+%global rpmrel 2
 %global baserel %{rpmrel}%{?dist}
 
 Summary: PHP scripting language for creating dynamic web sites
@@ -1493,6 +1493,9 @@ fi
 %endif
 
 %changelog
+* Sun Jun 28 2020 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.33-2
+- Build for CentOS 8.2
+
 * Mon Oct 28 2019 Alexander Ursu <alexander.ursu@gmail.com> - 7.1.33-1
 - Update to 7.1.32 - http://www.php.net/releases/7_1_33.php
 
